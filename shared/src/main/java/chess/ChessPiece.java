@@ -51,7 +51,23 @@ public class ChessPiece {
      *
      * @return Collection of valid moves
      */
-    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) { // TODO: use interface to handle calculations
-        throw new RuntimeException("Not implemented");
+    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
+        ChessPiece piece = board.getPiece(myPosition);
+        switch(piece.getPieceType()) {
+            case KING:
+                return new KingMoveCalculator().calculateMoves(board, myPosition);
+            case QUEEN:
+                return new QueenMoveCalculator().calculateMoves(board, myPosition);
+            case BISHOP:
+                return new BishopMoveCalculator().calculateMoves(board, myPosition);
+            case KNIGHT:
+                return new KnightMoveCalculator().calculateMoves(board, myPosition);
+            case ROOK:
+                return new RookMoveCalculator().calculateMoves(board, myPosition);
+            case PAWN:
+                return new PawnMoveCalculator().calculateMoves(board, myPosition);
+            default:
+                throw new RuntimeException("Unknown piece type: " + piece.getPieceType());
+        }
     }
 }
