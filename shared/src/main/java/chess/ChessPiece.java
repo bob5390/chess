@@ -55,17 +55,17 @@ public class ChessPiece {
         ChessPiece piece = board.getPiece(myPosition);
         switch(piece.getPieceType()) {
             case KING:
-                return new KingMoveCalculator().calculateMoves(board, myPosition);
+                return KingMoveCalculator.calculateMoves(board, myPosition);
             case QUEEN:
-                return new QueenMoveCalculator().calculateMoves(board, myPosition);
+                return QueenMoveCalculator.calculateMoves(board, myPosition);
             case BISHOP:
-                return new BishopMoveCalculator().calculateMoves(board, myPosition);
+                return BishopMoveCalculator.calculateMoves(board, myPosition);
             case KNIGHT:
-                return new KnightMoveCalculator().calculateMoves(board, myPosition);
+                return KnightMoveCalculator.calculateMoves(board, myPosition);
             case ROOK:
-                return new RookMoveCalculator().calculateMoves(board, myPosition);
+                return RookMoveCalculator.calculateMoves(board, myPosition);
             case PAWN:
-                return new PawnMoveCalculator().calculateMoves(board, myPosition);
+                return PawnMoveCalculator.calculateMoves(board, myPosition);
             default:
                 throw new RuntimeException("Unknown piece type: " + piece.getPieceType());
         }

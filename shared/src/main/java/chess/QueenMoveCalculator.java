@@ -4,7 +4,7 @@ import java.util.Collection;
 
 public class QueenMoveCalculator implements ChessMoveCalculator {
     @Override
-    public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition) {
+    public static Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition) {
         RookMoveCalculator rookCalculator = new RookMoveCalculator();
         BishopMoveCalculator bishopCalculator = new BishopMoveCalculator();
         
