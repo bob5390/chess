@@ -5,7 +5,7 @@ import java.util.Collection;
 
 public class PawnMoveCalculator implements ChessMoveCalculator {
     @Override
-    public static Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition) {
+    public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition) {
         ChessPiece piece = board.getPiece(myPosition);
 
         ArrayList<ChessMove> moves = new ArrayList<>();

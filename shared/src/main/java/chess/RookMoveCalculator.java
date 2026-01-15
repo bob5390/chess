@@ -5,7 +5,7 @@ import java.util.Collection;
 
 public class RookMoveCalculator implements ChessMoveCalculator {
     @Override
-    public static Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition) {
+    public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition) {
         ArrayList<ChessMove> moves = new ArrayList<>();
         
         int startX = myPosition.getRow();
