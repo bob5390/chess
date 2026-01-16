@@ -15,7 +15,11 @@ public class KingMoveCalculator implements ChessMoveCalculator {
             for(int y = startY - 1; y <= startY + 1; y++) {
                 if(x >= 1 && x <= 8 && y >= 1 && y <= 8) {
                     if(!(x == startX && y == startY)) {
-                        moves.add(new ChessMove(myPosition, new ChessPosition(x, y), null));
+                        ChessPosition toAdd = new ChessPosition(x, y);
+                        ChessPiece targetPiece = board.getPiece(toAdd);
+                        if(targetPiece == null || targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
+                            moves.add(new ChessMove(myPosition, new ChessPosition(x, y), null));
+                        }
                     }
                 }
             }

@@ -18,8 +18,12 @@ public class KnightMoveCalculator implements ChessMoveCalculator {
         for (int[] delta : deltas) {
             int newX = startX + delta[0];
             int newY = startY + delta[1];
-            if (newX >= 1 && newX <= 8 && newY >= 1 && newY <= 8) {
-                moves.add(new ChessMove(myPosition, new ChessPosition(newX, newY), null));
+            if (newX >= 1 && newX <= 8 && newY >= 1 && newY <= 8) { // check if on the board
+                ChessPosition newPos = new ChessPosition(newX, newY);
+                ChessPiece targetPiece = board.getPiece(newPos);
+                if(targetPiece == null || targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) { // check if the position is empty
+                    moves.add(new ChessMove(myPosition, new ChessPosition(newX, newY), null));
+                }
             }
         }
 
