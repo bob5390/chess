@@ -10,13 +10,46 @@ public class RookMoveCalculator implements ChessMoveCalculator {
         
         int startX = myPosition.getRow();
         int startY = myPosition.getColumn();
-        // up/down
-        for (int x = 1; x <= 8; x++) {
-            if(x != startX) moves.add(new ChessMove(myPosition, new ChessPosition(x, startY), null));
+
+        // up
+        for(int x = startX + 1; x <= 8; x++) {
+            ChessPosition toAdd = new ChessPosition(x, startY);
+            ChessPiece targetPiece = board.getPiece(toAdd);
+            if(targetPiece != null) {
+                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
+                break;
+            }
+            moves.add(new ChessMove(myPosition, toAdd, null));
         }
-        // right/left
-        for (int y = 1; y <= 8; y++) {
-            if(y != startY) moves.add(new ChessMove(myPosition, new ChessPosition(startX, y), null));
+        // down
+        for(int x = startX - 1; x >= 1; x--) {
+            ChessPosition toAdd = new ChessPosition(x, startY);
+            ChessPiece targetPiece = board.getPiece(toAdd);
+            if(targetPiece != null) {
+                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
+                break;
+            }
+            moves.add(new ChessMove(myPosition, toAdd, null));
+        }
+        // right
+        for (int y = startY + 1; y <= 8; y++) {
+            ChessPosition toAdd = new ChessPosition(startX, y);
+            ChessPiece targetPiece = board.getPiece(toAdd);
+            if(targetPiece != null) {
+                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
+                break;
+            }
+            moves.add(new ChessMove(myPosition, toAdd, null));
+        }
+        // left
+        for (int y = startY - 1; y >= 1; y--) {
+            ChessPosition toAdd = new ChessPosition(startX, y);
+            ChessPiece targetPiece = board.getPiece(toAdd);
+            if(targetPiece != null) {
+                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
+                break;
+            }
+            moves.add(new ChessMove(myPosition, toAdd, null));
         }
 
         return moves;
