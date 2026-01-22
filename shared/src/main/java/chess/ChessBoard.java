@@ -43,8 +43,8 @@ public class ChessBoard {
      */
     public void resetBoard() {
         // clear the board and add pawns
-        for(int y = 1; y < 8; y++) {
-            for(int x = 1; x < 8; x++) {
+        for(int y = 1; y <= 8; y++) {
+            for(int x = 1; x <= 8; x++) {
                 if(x == 2) addPiece(new ChessPosition(x, y), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN));
                 else if(x == 7) addPiece(new ChessPosition(x, y), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
                 else board[x-1][y-1] = null;
@@ -58,17 +58,17 @@ public class ChessBoard {
         addPiece(new ChessPosition(8, 1), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK));
         addPiece(new ChessPosition(8, 8), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK));
 
-        // BISHOP
-        addPiece(new ChessPosition(1, 2), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP));
-        addPiece(new ChessPosition(1, 7), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP));
-        addPiece(new ChessPosition(8, 2), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP));
-        addPiece(new ChessPosition(8, 7), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP));
-
         // KNIGHT
-        addPiece(new ChessPosition(1, 3), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT));
-        addPiece(new ChessPosition(1, 6), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT));
-        addPiece(new ChessPosition(8, 3), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT));
-        addPiece(new ChessPosition(8, 6), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT));
+        addPiece(new ChessPosition(1, 2), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT));
+        addPiece(new ChessPosition(1, 7), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT));
+        addPiece(new ChessPosition(8, 2), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT));
+        addPiece(new ChessPosition(8, 7), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT));
+
+        // BISHOP
+        addPiece(new ChessPosition(1, 3), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP));
+        addPiece(new ChessPosition(1, 6), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP));
+        addPiece(new ChessPosition(8, 3), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP));
+        addPiece(new ChessPosition(8, 6), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP));
 
         // QUEEN - note: queen always starts on her own square (col 4 for white and for black)
         addPiece(new ChessPosition(1, 4), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.QUEEN));
@@ -77,6 +77,41 @@ public class ChessBoard {
         // KING
         addPiece(new ChessPosition(1, 5), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KING));
         addPiece(new ChessPosition(8, 5), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING));
+    }
+
+    @Override
+    public String toString() {
+        String toReturn = "";
+        for(int x = 1; x <= 8; x++) {
+            for(int y = 1; y <= 8; y++) {
+                toReturn += "|";
+                ChessPiece currentPiece = getPiece(new ChessPosition(x, y));
+                if(currentPiece == null) {
+                    toReturn += " ";
+                }
+                else if(currentPiece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                    switch(currentPiece.getPieceType()) {
+                        case PAWN -> toReturn += "P";
+                        case KNIGHT -> toReturn += "N";
+                        case BISHOP -> toReturn += "B";
+                        case ROOK -> toReturn += "R";
+                        case QUEEN -> toReturn += "Q";
+                        case KING -> toReturn += "K";
+                    }
+                } else {
+                    switch(currentPiece.getPieceType()) {
+                        case PAWN -> toReturn += "p";
+                        case KNIGHT -> toReturn += "n";
+                        case BISHOP -> toReturn += "b";
+                        case ROOK -> toReturn += "r";
+                        case QUEEN -> toReturn += "q";
+                        case KING -> toReturn += "k";
+                    }
+                }
+            }
+            toReturn += "|\n";
+        }
+        return toReturn;
     }
 
     @Override
