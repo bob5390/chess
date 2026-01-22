@@ -49,9 +49,9 @@ public class ChessMove {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj) { // TODO: check hashcode as well
         if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        else if (obj == null || getClass() != obj.getClass()) return false;
         
         ChessMove toTest = (ChessMove) obj;
         return startPosition.equals(toTest.startPosition) &&
