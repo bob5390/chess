@@ -1,19 +1,24 @@
-package chess;
+package chess.move_calculators;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
+import chess.ChessBoard;
+import chess.ChessMove;
+import chess.ChessPiece;
+import chess.ChessPosition;
+
 /**
- * Calculates moves for a bishop piece
+ * Calculates moves for a rook piece
  */
-public class BishopMoveCalculator implements ChessMoveCalculator {
+public class RookMoveCalculator implements ChessMoveCalculator { 
 
     /**
-     * Calculates all the positions a bishop can move to
+     * Calculates all the positions a rook can move to
      * Does not take into account moves that are illegal due to leaving the king in danger
      * 
      * @param board the chess board to calculate moves on
-     * @param myPosition the position of the bishop to calculate moves for
+     * @param myPosition the position of the rook to calculate moves for
      */
     @Override
     public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition) {
@@ -21,9 +26,10 @@ public class BishopMoveCalculator implements ChessMoveCalculator {
         
         int startX = myPosition.getRow();
         int startY = myPosition.getColumn();
-        // up right
-        for (int x = startX + 1, y = startY + 1; x <= 8 && y <= 8; x++, y++) {
-            ChessPosition toAdd = new ChessPosition(x, y);
+
+        // up
+        for(int x = startX + 1; x <= 8; x++) {
+            ChessPosition toAdd = new ChessPosition(x, startY);
             ChessPiece targetPiece = board.getPiece(toAdd);
             if(targetPiece != null) {
                 if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
@@ -31,9 +37,9 @@ public class BishopMoveCalculator implements ChessMoveCalculator {
             }
             moves.add(new ChessMove(myPosition, toAdd, null));
         }
-        // up left
-        for (int x = startX - 1, y = startY + 1; x >= 1 && y <= 8; x--, y++) {
-            ChessPosition toAdd = new ChessPosition(x, y);
+        // down
+        for(int x = startX - 1; x >= 1; x--) {
+            ChessPosition toAdd = new ChessPosition(x, startY);
             ChessPiece targetPiece = board.getPiece(toAdd);
             if(targetPiece != null) {
                 if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
@@ -41,9 +47,9 @@ public class BishopMoveCalculator implements ChessMoveCalculator {
             }
             moves.add(new ChessMove(myPosition, toAdd, null));
         }
-        // down right
-        for (int x = startX + 1, y = startY - 1; x <= 8 && y >= 1; x++, y--) {
-            ChessPosition toAdd = new ChessPosition(x, y);
+        // right
+        for (int y = startY + 1; y <= 8; y++) {
+            ChessPosition toAdd = new ChessPosition(startX, y);
             ChessPiece targetPiece = board.getPiece(toAdd);
             if(targetPiece != null) {
                 if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
@@ -51,9 +57,9 @@ public class BishopMoveCalculator implements ChessMoveCalculator {
             }
             moves.add(new ChessMove(myPosition, toAdd, null));
         }
-        // down left
-        for (int x = startX - 1, y = startY - 1; x >= 1 && y >= 1; x--, y--) {
-            ChessPosition toAdd = new ChessPosition(x, y);
+        // left
+        for (int y = startY - 1; y >= 1; y--) {
+            ChessPosition toAdd = new ChessPosition(startX, y);
             ChessPiece targetPiece = board.getPiece(toAdd);
             if(targetPiece != null) {
                 if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
@@ -64,5 +70,4 @@ public class BishopMoveCalculator implements ChessMoveCalculator {
 
         return moves;
     }
-
 }

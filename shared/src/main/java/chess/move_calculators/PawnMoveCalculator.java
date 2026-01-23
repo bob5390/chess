@@ -1,7 +1,12 @@
-package chess;
+package chess.move_calculators;
 
 import java.util.ArrayList;
 import java.util.Collection;
+
+import chess.ChessBoard;
+import chess.ChessMove;
+import chess.ChessPiece;
+import chess.ChessPosition;
 
 /**
  * Calculates moves for a pawn piece

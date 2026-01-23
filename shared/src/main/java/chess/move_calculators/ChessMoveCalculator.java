@@ -1,6 +1,10 @@
-package chess;
+package chess.move_calculators;
 
 import java.util.Collection;
+
+import chess.ChessBoard;
+import chess.ChessMove;
+import chess.ChessPosition;
 
 /**
  * Interface for calculating chess moves for different piece types
