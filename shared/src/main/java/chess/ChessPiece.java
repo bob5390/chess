@@ -72,11 +72,16 @@ public class ChessPiece {
     }
 
     @Override
-    public boolean equals(Object obj) { // TODO: check hashcode as well
+    public boolean equals(Object obj) { 
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
 
         ChessPiece toTest = (ChessPiece) obj;
-        return pieceColor == toTest.pieceColor && type == toTest.type;
+        return hashCode() == toTest.hashCode() && pieceColor == toTest.pieceColor && type == toTest.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return pieceColor.hashCode() * 31 + type.hashCode();
     }
 }

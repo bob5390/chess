@@ -49,14 +49,23 @@ public class ChessMove {
     }
 
     @Override
-    public boolean equals(Object obj) { // TODO: check hashcode as well
+    public boolean equals(Object obj) {
         if (this == obj) return true;
         else if (obj == null || getClass() != obj.getClass()) return false;
         
         ChessMove toTest = (ChessMove) obj;
-        return startPosition.equals(toTest.startPosition) &&
+        return hashCode() == toTest.hashCode() && 
+                startPosition.equals(toTest.startPosition) &&
                 endPosition.equals(toTest.endPosition) &&
                 ((promotionPiece == null && toTest.promotionPiece == null) ||
                  (promotionPiece != null && promotionPiece.equals(toTest.promotionPiece)));
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = startPosition.hashCode();
+        hash = 31 * hash + endPosition.hashCode();
+        hash = 31 * hash + (promotionPiece != null ? promotionPiece.hashCode() : 0);
+        return hash;
     }
 }

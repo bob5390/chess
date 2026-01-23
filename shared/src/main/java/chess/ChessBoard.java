@@ -115,7 +115,7 @@ public class ChessBoard {
     }
 
     @Override
-    public boolean equals(Object obj) { // TODO: check hashcode as well
+    public boolean equals(Object obj) {
         if(this == obj) return true;
         else if(obj == null || getClass() != obj.getClass()) return false;
         
@@ -123,9 +123,25 @@ public class ChessBoard {
         for(int y = 1; y < 8; y++) {
             for(int x = 1; x < 8; x++) {
                 ChessPosition currentPosition = new ChessPosition(x, y);
-                if(getPiece(currentPosition) != toTest.getPiece(currentPosition)) return false;
+                ChessPiece currentPiece = getPiece(currentPosition);
+                ChessPiece toTestPiece = toTest.getPiece(currentPosition);
+                if(currentPiece == null && toTestPiece == null) continue;
+                else if(currentPiece == null || toTestPiece == null) return false;
+                else if(!currentPiece.equals(toTestPiece)) return false;
             }
         }
-        return true;
+        return hashCode() == toTest.hashCode();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        for(int y = 1; y <= 8; y++) {
+            for(int x = 1; x <= 8; x++) {
+                ChessPiece currentPiece = getPiece(new ChessPosition(x, y));
+                hash = 31 * hash + (currentPiece != null ? currentPiece.hashCode() : 0);
+            }
+        }
+        return hash;
     }
 }

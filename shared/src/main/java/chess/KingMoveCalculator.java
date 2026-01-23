@@ -3,7 +3,18 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * Calculates moves for a king piece
+ */
 public class KingMoveCalculator implements ChessMoveCalculator {
+
+    /**
+     * Calculates all the positions a king can move to
+     * Does not take into account moves that are illegal due to leaving the king in danger
+     * 
+     * @param board the chess board to calculate moves on
+     * @param myPosition the position of the king to calculate moves for
+     */
     @Override
     public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition) {
         ArrayList<ChessMove> moves = new ArrayList<>();

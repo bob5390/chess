@@ -3,7 +3,18 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * Calculates moves for a pawn piece
+ */
 public class PawnMoveCalculator implements ChessMoveCalculator {
+
+    /**
+     * Calculates all the positions a pawn can move to
+     * Does not take into account moves that are illegal due to leaving the king in danger
+     * 
+     * @param board the chess board to calculate moves on
+     * @param myPosition the position of the pawn to calculate moves for
+     */
     @Override
     public Collection<ChessMove> calculateMoves(ChessBoard board, ChessPosition myPosition) {
         ChessPiece piece = board.getPiece(myPosition);
