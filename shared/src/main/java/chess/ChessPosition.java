@@ -32,6 +32,10 @@ public class ChessPosition {
         return col;
     }
 
+    public static boolean validPosition(ChessPosition position) {
+        return position.getColumn() >= 1 && position.getColumn() <= 8 && position.getRow() >= 1 && position.getRow() <= 8;
+    }
+
     @Override
     public String toString() {
         return String.format("[%d,%d]", row, col);

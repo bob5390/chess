@@ -15,7 +15,7 @@ import chess.move_calculators.RookMoveCalculator;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public class ChessPiece {
+public class ChessPiece implements Cloneable {
 
     private final ChessGame.TeamColor pieceColor;
     private final PieceType type;
@@ -90,5 +90,17 @@ public class ChessPiece {
     @Override
     public int hashCode() {
         return pieceColor.hashCode() * 31 + type.hashCode();
+    }
+
+    @Override
+    public ChessPiece clone() {
+        try {
+            ChessPiece clone = (ChessPiece) super.clone();
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
     }
 }
