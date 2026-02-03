@@ -218,9 +218,14 @@ public class ChessGame {
         if(!isInCheck(teamColor) && validMoves(kingPosition).size() == 0) {
             for(int x = 1; x <= 8; x++) {
                 for(int y = 1; y <= 8; y++) {
-                    
+                    ChessPosition currentPosition = new ChessPosition(x, y);
+                    ChessPiece currentPiece = board.getPiece(currentPosition);
+                    if(currentPiece != null && currentPiece.getTeamColor() == teamColor) {
+                        if(validMoves(currentPosition).size() != 0) return false;
+                    }
                 }
             }
+            return true;
         }
         return false;
     }
