@@ -182,9 +182,27 @@ public class ChessGame {
      * @param teamColor which team to check for checkmate
      * @return True if the specified team is in checkmate
      */
-    public boolean isInCheckmate(TeamColor teamColor) {
+    public boolean isInCheckmate(TeamColor teamColor) { // TODO: check for pieces able to capture checking pieces
         ChessPosition kingPosition = board.getKingPosition(teamColor);
-        if(isInCheck(teamColor) && validMoves(kingPosition).size() == 0) return true;
+        if(isInCheck(teamColor) && validMoves(kingPosition).size() == 0) {
+            // check for ways to capture the checking piece
+            for(int x = 1; x <= 8; x++) {
+                for(int y = 1; y <= 8; y++) {
+                    ChessPosition currentPosition = new ChessPosition(x, y);
+                    ChessPiece currentPiece = board.getPiece(currentPosition);
+                    if(currentPiece != null && currentPiece.getTeamColor() == teamColor) {
+                        Collection<ChessMove> moves = currentPiece.pieceMoves(board, currentPosition);
+                        for(ChessMove move : moves) {
+                            ChessBoard oldBoard = board.clone();
+                            board.makeMove(move);
+                            if(!isInCheck(teamColor)) return false;
+                            board = oldBoard;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
         return false;
     }
 
@@ -197,7 +215,13 @@ public class ChessGame {
      */
     public boolean isInStalemate(TeamColor teamColor) {
         ChessPosition kingPosition = board.getKingPosition(teamColor);
-        if(!isInCheck(teamColor) && validMoves(kingPosition).size() == 0) return true;
+        if(!isInCheck(teamColor) && validMoves(kingPosition).size() == 0) {
+            for(int x = 1; x <= 8; x++) {
+                for(int y = 1; y <= 8; y++) {
+                    
+                }
+            }
+        }
         return false;
     }
 
