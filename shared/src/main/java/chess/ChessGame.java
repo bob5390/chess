@@ -39,7 +39,12 @@ public class ChessGame {
      */
     public enum TeamColor {
         WHITE,
-        BLACK
+        BLACK;
+
+        @Override
+        public String toString() {
+            return this == WHITE ? "White":"Black";
+        }
     }
 
     /**
@@ -182,7 +187,7 @@ public class ChessGame {
      * @param teamColor which team to check for checkmate
      * @return True if the specified team is in checkmate
      */
-    public boolean isInCheckmate(TeamColor teamColor) { // TODO: check for pieces able to capture checking pieces
+    public boolean isInCheckmate(TeamColor teamColor) {
         ChessPosition kingPosition = board.getKingPosition(teamColor);
         if(isInCheck(teamColor) && validMoves(kingPosition).size() == 0) {
             // check for ways to capture the checking piece
@@ -246,5 +251,26 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return board;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s\n%s to move.", board.toString(), currentTurn.toString());
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = board.hashCode();
+        hash = hash * 31 + currentTurn.hashCode();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        else if (obj == null || getClass() != obj.getClass()) return false;
+
+        ChessGame toTest = (ChessGame) obj;
+        return hashCode() == toTest.hashCode() && board.equals(toTest.getBoard()) && currentTurn == toTest.getTeamTurn();
     }
 }
