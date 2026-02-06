@@ -338,6 +338,26 @@ public class ChessGame {
      */
     public void setBoard(ChessBoard board) {
         this.board = board;
+
+        ChessPiece leftWhiteRook = board.getPiece(new ChessPosition(1, 1));
+        ChessPiece rightWhiteRook = board.getPiece(new ChessPosition(1, 8));
+        ChessPiece leftBlackRook = board.getPiece(new ChessPosition(8, 1));
+        ChessPiece rightBlackRook = board.getPiece(new ChessPosition(8, 8));
+
+        if(board.getKingPosition(ChessGame.TeamColor.WHITE) == null || !board.getKingPosition(ChessGame.TeamColor.WHITE).equals(new ChessPosition(1, 5))) {
+            whiteCanCastle[0] = false;
+            whiteCanCastle[1] = false;
+        } else {
+            if(leftWhiteRook == null || leftWhiteRook.getPieceType() != ChessPiece.PieceType.ROOK || leftWhiteRook.getTeamColor() != ChessGame.TeamColor.WHITE) whiteCanCastle[0] = false;
+            if(rightWhiteRook == null || rightWhiteRook.getPieceType() != ChessPiece.PieceType.ROOK || rightWhiteRook.getTeamColor() != ChessGame.TeamColor.WHITE) whiteCanCastle[1] = false;
+        }
+        if(board.getKingPosition(ChessGame.TeamColor.BLACK) == null || !board.getKingPosition(ChessGame.TeamColor.BLACK).equals(new ChessPosition(8, 5))) {
+            blackCanCastle[0] = false;
+            blackCanCastle[1] = false;
+        } else {
+            if(leftBlackRook == null || leftBlackRook.getPieceType() != ChessPiece.PieceType.ROOK || leftBlackRook.getTeamColor() != ChessGame.TeamColor.BLACK) blackCanCastle[0] = false;
+            if(rightBlackRook == null || rightBlackRook.getPieceType() != ChessPiece.PieceType.ROOK || rightBlackRook.getTeamColor() != ChessGame.TeamColor.BLACK) blackCanCastle[1] = false;
+        }
     }
 
     /**
