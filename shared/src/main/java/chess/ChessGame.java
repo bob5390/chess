@@ -57,7 +57,7 @@ public class ChessGame {
      * @return Set of valid moves for requested piece, or null if no piece at
      * startPosition
      */
-    public Collection<ChessMove> validMoves(ChessPosition startPosition) { // TODO: add checks for castling through check
+    public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece targetPiece = board.getPiece(startPosition);
         if(targetPiece == null) return null;
         Collection<ChessMove> moves = targetPiece.pieceMoves(board, startPosition);
@@ -120,8 +120,18 @@ public class ChessGame {
                     } else board = oldBoard;
                 }
             }
-        } else if(targetPiece.getPieceType() == ChessPiece.PieceType.PAWN) { // add en passant
-            // TODO: en passant
+        } else if(targetPiece.getPieceType() == ChessPiece.PieceType.PAWN && lastMove != null) { // add en passant
+            int direction = (targetPiece.getTeamColor() == ChessGame.TeamColor.WHITE)? 1:-1;
+            int row = (targetPiece.getTeamColor() == ChessGame.TeamColor.WHITE)? 5:4;
+
+            ChessPiece lastMovedPiece = board.getPiece(lastMove.getEndPosition());
+            if(lastMovedPiece.getPieceType() == ChessPiece.PieceType.PAWN && startPosition.getRow() == row && lastMove.getEndPosition().getRow() == row) {
+                if(lastMove.getEndPosition().getColumn() == startPosition.getColumn()+1 || lastMove.getEndPosition().getColumn() == startPosition.getColumn()-1) {
+                    ChessPosition enPassantTarget = new ChessPosition(row+direction, lastMove.getEndPosition().getColumn());
+                    ChessPiece spaceToMoveTo = board.getPiece(enPassantTarget);
+                    if(spaceToMoveTo == null) moves.add(new ChessMove(startPosition, enPassantTarget, null));
+                }
+            }
         }
 
         for(ChessMove move : moves) {
@@ -171,6 +181,11 @@ public class ChessGame {
                 } else {
                     if(blackCanCastle[0] && move.getStartPosition().getColumn() == 1) blackCanCastle[0] = false;
                     else if(blackCanCastle[1] && move.getStartPosition().getColumn() == 8) blackCanCastle[1] = false;
+                }
+            } else if(targetPiece.getPieceType() == ChessPiece.PieceType.PAWN && lastMove != null) {
+                ChessPiece lastMovedPiece = board.getPiece(lastMove.getEndPosition());
+                if(lastMovedPiece.getPieceType() == ChessPiece.PieceType.PAWN && move.getEndPosition().getColumn() == lastMove.getEndPosition().getColumn()) {
+                    board.addPiece(lastMove.getEndPosition(), null);
                 }
             }
 
