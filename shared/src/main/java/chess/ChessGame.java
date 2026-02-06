@@ -13,6 +13,9 @@ public class ChessGame {
 
     private TeamColor currentTurn = TeamColor.WHITE;
     private ChessBoard board = new ChessBoard();
+    private boolean[] whiteCanCastle = {true, true};
+    private boolean[] blackCanCastle = {true, true};
+    private ChessMove lastMove = null;
 
     public ChessGame() {
         board.resetBoard();
@@ -66,6 +69,24 @@ public class ChessGame {
             board = oldBoard;
         }
         moves.removeAll(toRemove);
+
+        // add castles
+        if(targetPiece.getPieceType() == ChessPiece.PieceType.KING) {
+            if(targetPiece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                if(whiteCanCastle[0] && board.getPiece(new ChessPosition(1, 4)) == null && board.getPiece(new ChessPosition(1, 3)) == null)
+                    moves.add(new ChessMove(startPosition, new ChessPosition(1, 3), null));
+                if(whiteCanCastle[1] && board.getPiece(new ChessPosition(1, 6)) == null && board.getPiece(new ChessPosition(1, 7)) == null) 
+                    moves.add(new ChessMove(startPosition, new ChessPosition(1, 7), null));
+            } else {
+                if(blackCanCastle[0] && board.getPiece(new ChessPosition(8, 4)) == null && board.getPiece(new ChessPosition(8, 3)) == null) 
+                    moves.add(new ChessMove(startPosition, new ChessPosition(8, 3), null));
+                if(blackCanCastle[1] && board.getPiece(new ChessPosition(8, 6)) == null && board.getPiece(new ChessPosition(8, 7)) == null) 
+                    moves.add(new ChessMove(startPosition, new ChessPosition(8, 7), null));
+            }
+        } else if(targetPiece.getPieceType() == ChessPiece.PieceType.PAWN) { // add en passant
+            // TODO: en passant
+        }
+
         return moves;
     }
 
@@ -75,7 +96,7 @@ public class ChessGame {
      * @param move chess move to perform
      * @throws InvalidMoveException if move is invalid
      */
-    public void makeMove(ChessMove move) throws InvalidMoveException {
+    public void makeMove(ChessMove move) throws InvalidMoveException { // TODO: handle castling and en passant
         ChessPosition startPosition = move.getStartPosition();
         ChessPiece targetPiece = board.getPiece(startPosition);
         if(targetPiece != null && targetPiece.getTeamColor() == currentTurn && validMoves(move.getStartPosition()).contains(move)) {
@@ -85,6 +106,7 @@ public class ChessGame {
                 board.addPiece(move.getEndPosition(), new ChessPiece(targetPiece.getTeamColor(), promotionType));
             }
             setTeamTurn((currentTurn == ChessGame.TeamColor.WHITE)? ChessGame.TeamColor.BLACK:ChessGame.TeamColor.WHITE);
+            lastMove = move.clone();
         } else {
             throw new InvalidMoveException("Invalid move " + move.toString());
         }

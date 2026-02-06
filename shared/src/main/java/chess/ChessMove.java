@@ -6,7 +6,7 @@ package chess;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public class ChessMove {
+public class ChessMove implements Cloneable {
 
     private final ChessPosition startPosition;
     private final ChessPosition endPosition;
@@ -67,5 +67,11 @@ public class ChessMove {
         hash = 31 * hash + endPosition.hashCode();
         hash = 31 * hash + (promotionPiece != null ? promotionPiece.hashCode() : 0);
         return hash;
+    }
+
+    @Override
+    public ChessMove clone() {
+        ChessMove clone = new ChessMove(new ChessPosition(startPosition.getRow(), startPosition.getColumn()), new ChessPosition(endPosition.getRow(), endPosition.getColumn()), promotionPiece);
+        return clone;
     }
 }
