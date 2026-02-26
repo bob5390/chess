@@ -1,5 +1,5 @@
 package dataaccess;
 
-public class GameData {
+public class GameData extends ServerData {
 
 }

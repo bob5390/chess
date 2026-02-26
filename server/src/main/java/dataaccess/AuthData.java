@@ -1,5 +1,5 @@
 package dataaccess;
 
-public class AuthData {
+public class AuthData extends ServerData{
 
 }
