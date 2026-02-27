@@ -2,12 +2,29 @@ package service;
 
 import java.util.Collection;
 
+import dataaccess.AlreadyTakenException;
+import dataaccess.AuthData;
+import dataaccess.DataAccess;
 import dataaccess.GameData;
+import dataaccess.UserData;
 import kotlin.NotImplementedError;
 
 public class ChessService {
-    public RegisterResult register(RegisterRequest req) {
-        throw new NotImplementedError();
+    DataAccess dbAccess;
+
+    public ChessService() {
+        dbAccess = new DataAccess();
+    }
+
+    public RegisterResult register(RegisterRequest req) throws AlreadyTakenException {
+        UserData userData = dbAccess.getUser(req.getUsername());
+        if(userData != null) {
+            throw new AlreadyTakenException("username already taken");
+        } else {
+            userData = dbAccess.createUser(userData);
+            AuthData authData = dbAccess.createAuth(new AuthData(userData.getAuthToken()));
+            return new RegisterResult(authData);
+        }
     }
 
     public LoginResult login(LoginRequest req) {

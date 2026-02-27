@@ -1,9 +1,12 @@
 package server;
 
+import com.google.gson.Gson;
+
 import dataaccess.DataAccessException;
 import io.javalin.*;
 import io.javalin.http.Context;
 import service.ChessService;
+import service.RegisterRequest;
 
 public class Server {
     private final ChessService service;
@@ -66,7 +69,7 @@ public class Server {
     }
 
     private void registerUser(Context ctx) throws DataAccessException {
-        // make register request
+        service.register(new RegisterRequest(new Gson().toJson(ctx.body())));
         // send off to handler
         // result to json
         ctx.result();
