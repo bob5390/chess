@@ -2,7 +2,9 @@ package dataaccess;
 
 import java.util.Collection;
 
-import chess.ChessGame;
+import model.AuthData;
+import model.GameData;
+import model.UserData;
 
 public interface DataAccess {
     public UserData getUser(String username);

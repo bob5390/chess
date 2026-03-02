@@ -1,27 +1,24 @@
 package server;
 
-import java.util.Map;
-
 import com.google.gson.Gson;
 
-import chess.ChessGame;
 import io.javalin.*;
 import io.javalin.http.Context;
 import io.javalin.http.HttpResponseException;
 import service.ChessService;
-import service.ClearRequest;
-import service.CreateGameRequest;
-import service.CreateGameResult;
-import service.JoinGameRequest;
-import service.JoinGameResult;
-import service.ListGamesRequest;
-import service.ListGamesResult;
-import service.LoginRequest;
-import service.LoginResult;
-import service.LogoutRequest;
-import service.LogoutResult;
-import service.RegisterRequest;
-import service.RegisterResult;
+import service.requests.ClearRequest;
+import service.requests.CreateGameRequest;
+import service.requests.JoinGameRequest;
+import service.requests.ListGamesRequest;
+import service.requests.LoginRequest;
+import service.requests.LogoutRequest;
+import service.requests.RegisterRequest;
+import service.results.CreateGameResult;
+import service.results.JoinGameResult;
+import service.results.ListGamesResult;
+import service.results.LoginResult;
+import service.results.LogoutResult;
+import service.results.RegisterResult;
 
 public class Server {
     private final ChessService service;

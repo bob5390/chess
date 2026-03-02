@@ -1,13 +1,26 @@
 package service;
 
-import chess.ChessGame;
-import dataaccess.AuthData;
-import dataaccess.GameData;
 import dataaccess.MemoryDataAccess;
-import dataaccess.UserData;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
+import model.AuthData;
+import model.GameData;
+import model.UserData;
+import service.requests.ClearRequest;
+import service.requests.CreateGameRequest;
+import service.requests.JoinGameRequest;
+import service.requests.ListGamesRequest;
+import service.requests.LoginRequest;
+import service.requests.LogoutRequest;
+import service.requests.RegisterRequest;
+import service.results.ClearResult;
+import service.results.CreateGameResult;
+import service.results.JoinGameResult;
+import service.results.ListGamesResult;
+import service.results.LoginResult;
+import service.results.LogoutResult;
+import service.results.RegisterResult;
 
 public class ChessService {
     MemoryDataAccess dbAccess;

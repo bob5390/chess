@@ -5,7 +5,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.UUID;
 
-import chess.ChessGame;
+import model.AuthData;
+import model.GameData;
+import model.UserData;
 
 public class MemoryDataAccess implements DataAccess {
     private HashMap<String, UserData> userDataMap;

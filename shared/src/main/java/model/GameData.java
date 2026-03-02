@@ -1,8 +1,6 @@
-package dataaccess;
+package model;
 
 import java.util.Map;
-
-import com.google.gson.Gson;
 
 public class GameData {
     private String gameID;

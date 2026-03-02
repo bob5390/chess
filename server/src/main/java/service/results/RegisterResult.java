@@ -1,10 +1,10 @@
-package service;
+package service.results;
 
-public class LoginResult {
+public class RegisterResult {
     private String username;
     private String authToken;
 
-    public LoginResult(String username, String authToken) {
+    public RegisterResult(String authToken, String username) {
         this.username = username;
         this.authToken = authToken;
     }

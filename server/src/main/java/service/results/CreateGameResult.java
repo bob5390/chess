@@ -1,4 +1,4 @@
-package service;
+package service.results;
 
 public class CreateGameResult {
     private String gameID;

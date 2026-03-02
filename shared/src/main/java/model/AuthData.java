@@ -1,4 +1,4 @@
-package dataaccess;
+package model;
 
 public class AuthData {
     private String authToken;
