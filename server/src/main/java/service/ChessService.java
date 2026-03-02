@@ -62,7 +62,14 @@ public class ChessService {
     }
 
     public CreateGameResult createGame(CreateGameRequest req) {
-        throw new NotImplementedError();
+        AuthData authData = dbAccess.getAuth(req.getAuthToken());
+        if(authData != null) {
+            UserData userData = dbAccess.getUser(authData);
+            GameData gameData = dbAccess.createGame(req.getGameName(), userData);
+            return new CreateGameResult(gameData, userData);
+        } else {
+            throw new UnauthorizedResponse("unauthorized");
+        }
     }
 
     public JoinGameResult joinGame(JoinGameRequest req) {
