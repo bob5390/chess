@@ -4,6 +4,7 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 
+import chess.ChessGame;
 import io.javalin.*;
 import io.javalin.http.Context;
 import io.javalin.http.HttpResponseException;
@@ -58,28 +59,6 @@ public class Server {
         ctx.result(gson.toJson(ex.getMessage())); // json result from ex
     }
 
-    private void listGames(Context ctx) throws HttpResponseException {
-        ListGamesResult result = service.listGames(new ListGamesRequest(ctx.header("Authorization")));
-        ctx.result(result.toJson());
-    }
-
-    private void createGame(Context ctx) throws HttpResponseException {
-        Map<String, String> body = gson.fromJson(ctx.body(), Map.class);
-        CreateGameRequest request = new CreateGameRequest(ctx.header("Authorization"), body.get("gameName"));
-        CreateGameResult result = service.createGame(request);
-        ctx.result(result.toJson());
-    }
-
-    private void joinGame(Context ctx) throws HttpResponseException {
-        JoinGameRequest request = new JoinGameRequest(ctx.header("Authorization"), ctx.body());
-        JoinGameResult result = service.joinGame(request);
-        ctx.result(result.toJson());
-    }
-
-    private void clearDatabases(Context ctx) throws HttpResponseException {
-        ctx.result(service.clearDatabases(new ClearRequest()).toJson());
-    }
-
     private void registerUser(Context ctx) throws HttpResponseException {
         RegisterRequest request = gson.fromJson(ctx.body().strip(), RegisterRequest.class);
         RegisterResult result = service.register(request);
@@ -96,5 +75,28 @@ public class Server {
     private void logout(Context ctx) throws HttpResponseException {
         LogoutResult result = service.logout(new LogoutRequest(ctx.header("Authorization")));
         ctx.result(gson.toJson(result));
+    }
+
+    private void listGames(Context ctx) throws HttpResponseException {
+        ListGamesResult result = service.listGames(new ListGamesRequest(ctx.header("Authorization")));
+        ctx.result(gson.toJson(result));
+    }
+
+    private void createGame(Context ctx) throws HttpResponseException {
+        CreateGameRequest request = gson.fromJson(ctx.body(), CreateGameRequest.class);
+        request.setAuthToken(ctx.header("Authorization"));
+        CreateGameResult result = service.createGame(request);
+        ctx.result(gson.toJson(result));
+    }
+
+    private void joinGame(Context ctx) throws HttpResponseException {
+        JoinGameRequest request = gson.fromJson(ctx.body(), JoinGameRequest.class);
+        request.setAuthToken(ctx.header("Authorization"));
+        JoinGameResult result = service.joinGame(request);
+        ctx.result(gson.toJson(result));
+    }
+
+    private void clearDatabases(Context ctx) throws HttpResponseException {
+        ctx.result(service.clearDatabases(new ClearRequest()).toJson());
     }
 }

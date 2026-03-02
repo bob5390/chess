@@ -2,6 +2,8 @@ package dataaccess;
 
 import java.util.Collection;
 
+import chess.ChessGame;
+
 public interface DataAccess {
     public UserData getUser(String username);
     public String createUser(UserData userData);
@@ -12,8 +14,8 @@ public interface DataAccess {
     public boolean deleteAuth(AuthData authData);
     public Collection<GameData> listGames();
     public GameData getGame(String gameID);
-    public GameData createGame(String gameName, UserData userData);
-    public GameData updateGame(GameData gameData, UserData userData);
+    public GameData createGame(String gameName);
+    public GameData updateGame(GameData gameData, UserData userData, String teamColor);
 
     public boolean clearGames();
     public boolean clearAuths();

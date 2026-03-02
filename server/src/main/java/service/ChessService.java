@@ -68,9 +68,8 @@ public class ChessService {
     public CreateGameResult createGame(CreateGameRequest req) {
         AuthData authData = dbAccess.getAuth(req.getAuthToken());
         if(authData != null) {
-            UserData userData = dbAccess.getUser(authData.getUsername());
-            GameData gameData = dbAccess.createGame(req.getGameName(), userData);
-            return new CreateGameResult(gameData, userData);
+            GameData gameData = dbAccess.createGame(req.getGameName());
+            return new CreateGameResult(gameData.getGameID());
         } else {
             throw new UnauthorizedResponse("unauthorized");
         }
@@ -83,13 +82,13 @@ public class ChessService {
             GameData gameData = dbAccess.getGame(req.getGameID());
             if(gameData != null) {
                 if(checkTeamColor(req.getTeamColor(), gameData)) {
-                    gameData = dbAccess.updateGame(gameData, userData);
-                    return new JoinGameResult(gameData);
+                    gameData = dbAccess.updateGame(gameData, userData, req.getTeamColor());
+                    return new JoinGameResult();
                 } else {
                     throw new ForbiddenResponse("cannot join, game already taken");
                 }    
             } else {
-                throw new BadRequestResponse("bad request");
+                throw new BadRequestResponse("game does not exist");
             }
         } else {
             throw new UnauthorizedResponse("unauthorized");
@@ -111,11 +110,11 @@ public class ChessService {
         return password1.equals(password2);
     }
 
-    private boolean checkTeamColor(ChessGame.TeamColor teamColor, GameData gameData) {
-        if(teamColor == ChessGame.TeamColor.BLACK) {
-            return gameData.getBlackUsername() == "";
+    private boolean checkTeamColor(String teamColor, GameData gameData) {
+        if(teamColor == "BLACK") {
+            return gameData.getBlackUsername() == null || gameData.getBlackUsername() == "";
         } else {
-            return gameData.getWhiteUsername() == "";
+            return gameData.getWhiteUsername() == null || gameData.getWhiteUsername() == "";
         }
     }
 }

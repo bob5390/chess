@@ -1,12 +1,15 @@
 package dataaccess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.UUID;
 
+import chess.ChessGame;
+
 public class MemoryDataAccess implements DataAccess {
     private HashMap<String, UserData> userDataMap;
-    private HashMap<Integer, GameData> gameDataMap;
+    private HashMap<String, GameData> gameDataMap;
     private HashMap<String, AuthData> authDataMap;
     private int gameId;
 
@@ -62,22 +65,40 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public Collection<GameData> listGames() {
-        throw new UnsupportedOperationException("Unimplemented method 'listGames'");
+        Collection<GameData> toReturn = new ArrayList<GameData>();
+        for(GameData i : gameDataMap.values()) {
+            toReturn.add(i);
+        }
+        return toReturn;
     }
 
     @Override
     public GameData getGame(String gameID) {
-        throw new UnsupportedOperationException("Unimplemented method 'getGame'");
+        return gameDataMap.get(gameID);
     }
 
     @Override
-    public GameData createGame(String gameName, UserData userData) {
-        throw new UnsupportedOperationException("Unimplemented method 'createGame'");
+    public GameData createGame(String gameName) {
+        GameData newGame = new GameData(Integer.toString(gameId++), null, null, gameName);
+        gameDataMap.put(newGame.getGameID(), newGame);
+        return newGame;
     }
 
     @Override
-    public GameData updateGame(GameData gameData, UserData userData) {
-        throw new UnsupportedOperationException("Unimplemented method 'updateGame'");
+    public GameData updateGame(GameData gameData, UserData userData, String teamColor) {
+        gameDataMap.remove(gameData.getGameID());
+        switch (teamColor) {
+            case "BLACK":
+                gameData.setBlackUsername(userData.getUsername());
+                break;
+            case "WHITE":
+                gameData.setWhiteUsername(userData.getUsername());
+                break;
+            default:
+                break;
+        }
+        gameDataMap.put(gameData.getGameID(), gameData);
+        return gameData;
     }
 
     @Override
