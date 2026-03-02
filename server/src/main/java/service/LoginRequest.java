@@ -1,10 +1,10 @@
-package dataaccess;
+package service;
 
-public class UserData {
-    private String username;
-    private String password;
+public class LoginRequest {
+    String username;
+    String password;
 
-    public UserData(String username, String password) {
+    public LoginRequest(String username, String password) {
         this.username = username;
         this.password = password;
     }

@@ -1,17 +1,8 @@
 package dataaccess;
 
-import kotlin.NotImplementedError;
-
-public class DataAccess {
-    public UserData getUser(String username) {
-        throw new NotImplementedError();
-    }
-
-    public UserData createUser(UserData userData) {
-        return userData;
-    }
-
-    public AuthData createAuth(AuthData authData) {
-        return authData;
-    }
+public interface DataAccess {
+    public UserData getUser(String username);
+    public UserData createUser(UserData userData);
+    public AuthData getAuth(UserData userData);
+    public AuthData createAuth(UserData userData);
 }

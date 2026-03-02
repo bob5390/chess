@@ -6,14 +6,16 @@ import dataaccess.AlreadyTakenException;
 import dataaccess.AuthData;
 import dataaccess.DataAccess;
 import dataaccess.GameData;
+import dataaccess.MemoryDataAccess;
 import dataaccess.UserData;
+import io.javalin.http.UnauthorizedResponse;
 import kotlin.NotImplementedError;
 
 public class ChessService {
     DataAccess dbAccess;
 
     public ChessService() {
-        dbAccess = new DataAccess();
+        dbAccess = new MemoryDataAccess();
     }
 
     public RegisterResult register(RegisterRequest req) throws AlreadyTakenException {
@@ -22,13 +24,23 @@ public class ChessService {
             throw new AlreadyTakenException("username already taken");
         } else {
             userData = dbAccess.createUser(userData);
-            AuthData authData = dbAccess.createAuth(new AuthData(userData.getAuthToken()));
-            return new RegisterResult(authData);
+            AuthData authData = dbAccess.createAuth(userData);
+            return new RegisterResult(authData, userData);
         }
     }
 
     public LoginResult login(LoginRequest req) {
-        throw new NotImplementedError();
+        UserData userData = dbAccess.getUser(req.getUsername());
+        if(userData != null) {
+            if(checkPassword(req.getPassword(), userData.getPassword())) {
+                AuthData authData = dbAccess.getAuth(userData);
+                return new LoginResult(authData, userData);
+            } else {
+                throw new UnauthorizedResponse("unauthorized");
+            }
+        } else {
+            throw new UnauthorizedResponse("username not found");
+        }
     }
 
     public LogoutResult logout(LogoutRequest req) {
@@ -49,5 +61,9 @@ public class ChessService {
 
     public ClearResult clearDatabases(ClearRequest req) {
         throw new NotImplementedError();
+    }
+
+    private boolean checkPassword(String password1, String password2) {
+        return password1.equals(password2);
     }
 }
