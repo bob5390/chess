@@ -99,7 +99,7 @@ public class ChessService {
         if(dbAccess.clearGames()) {
             if(dbAccess.clearUsers()) {
                 if(dbAccess.clearAuths()) {
-                    return new ClearResult(true);
+                    return new ClearResult();
                 }
             }
         }

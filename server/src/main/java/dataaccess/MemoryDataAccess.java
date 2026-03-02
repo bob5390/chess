@@ -103,16 +103,19 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public boolean clearGames() {
-        throw new UnsupportedOperationException("Unimplemented method 'clearGames'");
+        gameDataMap.clear();
+        return true;
     }
 
     @Override
     public boolean clearAuths() {
-        throw new UnsupportedOperationException("Unimplemented method 'clearAuths'");
+        authDataMap.clear();
+        return true;
     }
 
     @Override
     public boolean clearUsers() {
-        throw new UnsupportedOperationException("Unimplemented method 'clearUsers'");
+        userDataMap.clear();
+        return true;
     }
 }

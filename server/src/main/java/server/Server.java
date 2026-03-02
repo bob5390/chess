@@ -97,6 +97,6 @@ public class Server {
     }
 
     private void clearDatabases(Context ctx) throws HttpResponseException {
-        ctx.result(service.clearDatabases(new ClearRequest()).toJson());
+        ctx.result(gson.toJson(service.clearDatabases(new ClearRequest())));
     }
 }
