@@ -1,11 +1,18 @@
 package service;
 
+import java.util.Map;
+
+import com.google.gson.Gson;
+
 public class LogoutResult {
     private boolean success;
-    
+
     public LogoutResult(boolean success) {
         this.success = success;
     }
 
     public boolean getSuccess() { return success; }
+    public String toJson() {
+        return new Gson().toJson(Map.of("success", success));
+    }
 }

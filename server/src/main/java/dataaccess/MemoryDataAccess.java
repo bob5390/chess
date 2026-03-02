@@ -45,7 +45,17 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
+    public GameData getGame(String gameID) {
+        throw new UnsupportedOperationException("Unimplemented method 'getGame'");
+    }
+
+    @Override
     public GameData createGame(String gameName, UserData userData) {
         throw new UnsupportedOperationException("Unimplemented method 'createGame'");
+    }
+
+    @Override
+    public GameData updateGame(GameData gameData, UserData userData) {
+        throw new UnsupportedOperationException("Unimplemented method 'updateGame'");
     }
 }

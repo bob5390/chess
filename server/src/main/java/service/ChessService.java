@@ -2,6 +2,7 @@ package service;
 
 import java.util.Collection;
 
+import chess.ChessGame;
 import dataaccess.AlreadyTakenException;
 import dataaccess.AuthData;
 import dataaccess.DataAccess;
@@ -72,8 +73,20 @@ public class ChessService {
         }
     }
 
-    public JoinGameResult joinGame(JoinGameRequest req) {
-        throw new NotImplementedError();
+    public JoinGameResult joinGame(JoinGameRequest req) throws AlreadyTakenException {
+        AuthData authData = dbAccess.getAuth(req.getAuthToken());
+        if(authData != null) {
+            UserData userData = dbAccess.getUser(authData);
+            GameData gameData = dbAccess.getGame(req.getGameID());
+            if(checkTeamColor(req.getTeamColor(), gameData)) {
+                gameData = dbAccess.updateGame(gameData, userData);
+                return new JoinGameResult(gameData);
+            } else {
+                throw new AlreadyTakenException("cannot join, game already taken");
+            }
+        } else {
+            throw new UnauthorizedResponse("unauthorized");
+        }
     }
 
     public ClearResult clearDatabases(ClearRequest req) {
@@ -82,5 +95,13 @@ public class ChessService {
 
     private boolean checkPassword(String password1, String password2) {
         return password1.equals(password2);
+    }
+
+    private boolean checkTeamColor(ChessGame.TeamColor teamColor, GameData gameData) {
+        if(teamColor == ChessGame.TeamColor.BLACK) {
+            return gameData.getBlackUsername() == "";
+        } else {
+            return gameData.getWhiteUsername() == "";
+        }
     }
 }

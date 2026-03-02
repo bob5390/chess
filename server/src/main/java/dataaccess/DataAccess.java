@@ -11,5 +11,7 @@ public interface DataAccess {
     public AuthData createAuth(UserData userData);
     public boolean deleteAuth(AuthData authData);
     public Collection<GameData> listGames();
+    public GameData getGame(String gameID);
     public GameData createGame(String gameName, UserData userData);
+    public GameData updateGame(GameData gameData, UserData userData);
 }
