@@ -14,4 +14,8 @@ public interface DataAccess {
     public GameData getGame(String gameID);
     public GameData createGame(String gameName, UserData userData);
     public GameData updateGame(GameData gameData, UserData userData);
+
+    public boolean clearGames();
+    public boolean clearAuths();
+    public boolean clearUsers();
 }

@@ -58,4 +58,19 @@ public class MemoryDataAccess implements DataAccess {
     public GameData updateGame(GameData gameData, UserData userData) {
         throw new UnsupportedOperationException("Unimplemented method 'updateGame'");
     }
+
+    @Override
+    public boolean clearGames() {
+        throw new UnsupportedOperationException("Unimplemented method 'clearGames'");
+    }
+
+    @Override
+    public boolean clearAuths() {
+        throw new UnsupportedOperationException("Unimplemented method 'clearAuths'");
+    }
+
+    @Override
+    public boolean clearUsers() {
+        throw new UnsupportedOperationException("Unimplemented method 'clearUsers'");
+    }
 }

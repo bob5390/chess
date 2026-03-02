@@ -9,6 +9,7 @@ import dataaccess.DataAccess;
 import dataaccess.GameData;
 import dataaccess.MemoryDataAccess;
 import dataaccess.UserData;
+import io.javalin.http.BadRequestResponse;
 import io.javalin.http.UnauthorizedResponse;
 import kotlin.NotImplementedError;
 
@@ -78,11 +79,15 @@ public class ChessService {
         if(authData != null) {
             UserData userData = dbAccess.getUser(authData);
             GameData gameData = dbAccess.getGame(req.getGameID());
-            if(checkTeamColor(req.getTeamColor(), gameData)) {
-                gameData = dbAccess.updateGame(gameData, userData);
-                return new JoinGameResult(gameData);
+            if(gameData != null) {
+                if(checkTeamColor(req.getTeamColor(), gameData)) {
+                    gameData = dbAccess.updateGame(gameData, userData);
+                    return new JoinGameResult(gameData);
+                } else {
+                    throw new AlreadyTakenException("cannot join, game already taken");
+                }    
             } else {
-                throw new AlreadyTakenException("cannot join, game already taken");
+                throw new BadRequestResponse("bad request");
             }
         } else {
             throw new UnauthorizedResponse("unauthorized");
@@ -90,7 +95,14 @@ public class ChessService {
     }
 
     public ClearResult clearDatabases(ClearRequest req) {
-        throw new NotImplementedError();
+        if(dbAccess.clearGames()) {
+            if(dbAccess.clearUsers()) {
+                if(dbAccess.clearAuths()) {
+                    return new ClearResult(true);
+                }
+            }
+        }
+        throw new BadRequestResponse("could not clear databas(es)");
     }
 
     private boolean checkPassword(String password1, String password2) {
