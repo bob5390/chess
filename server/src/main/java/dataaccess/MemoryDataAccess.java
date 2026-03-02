@@ -1,5 +1,7 @@
 package dataaccess;
 
+import java.util.Collection;
+
 public class MemoryDataAccess implements DataAccess {
 
     @Override
@@ -30,5 +32,10 @@ public class MemoryDataAccess implements DataAccess {
     @Override
     public boolean deleteAuth(AuthData authData) {
         throw new UnsupportedOperationException("Unimplemented method 'deleteAuth'");
+    }
+
+    @Override
+    public Collection<GameData> listGames() {
+        throw new UnsupportedOperationException("Unimplemented method 'listGames'");
     }
 }

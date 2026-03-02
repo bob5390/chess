@@ -53,7 +53,12 @@ public class ChessService {
     }
 
     public ListGamesResult listGames(ListGamesRequest req) {
-        throw new NotImplementedError();
+        AuthData authData = dbAccess.getAuth(req.getAuthToken());
+        if(authData != null) {
+            return new ListGamesResult(dbAccess.listGames());
+        } else {
+            throw new UnauthorizedResponse("unauthorized");
+        }
     }
 
     public CreateGameResult createGame(CreateGameRequest req) {
