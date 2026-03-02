@@ -3,6 +3,7 @@ package service;
 import dataaccess.MemoryDataAccess;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
+import io.javalin.http.HttpResponseException;
 import io.javalin.http.UnauthorizedResponse;
 import model.AuthData;
 import model.GameData;
@@ -33,15 +34,21 @@ public class ChessService {
         UserData userData = dbAccess.getUser(req.getUsername());
         if(userData != null) {
             throw new ForbiddenResponse("username already taken");
+        } else if(req.getUsername() != null) {
+            if(req.getPassword() != null) {
+                userData = new UserData(req.getUsername(), req.getPassword(), req.getEmail());
+                String authToken = dbAccess.createUser(userData);
+                AuthData authData = dbAccess.createAuth(authToken, userData.getUsername());
+                return new RegisterResult(authData.getAuthToken(), userData.getUsername());
+            } else {
+                throw new BadRequestResponse("no password provided");
+            }
         } else {
-            userData = new UserData(req.getUsername(), req.getPassword(), req.getEmail());
-            String authToken = dbAccess.createUser(userData);
-            AuthData authData = dbAccess.createAuth(authToken, userData.getUsername());
-            return new RegisterResult(authData.getAuthToken(), userData.getUsername());
+            throw new BadRequestResponse("no username provided");
         }
     }
 
-    public LoginResult login(LoginRequest req) {
+    public LoginResult login(LoginRequest req) throws HttpResponseException {
         UserData userData = dbAccess.getUser(req.getUsername());
         if(userData != null) {
             if(checkPassword(req.getPassword(), userData.getPassword())) {
@@ -50,17 +57,22 @@ public class ChessService {
                     authData = dbAccess.createAuth(userData.getUsername());
                     return new LoginResult(userData.getUsername(), authData.getAuthToken());
                 } else {
-                    throw new BadRequestResponse("already logged in");
+                    authData = dbAccess.getAuth(userData);
+                    return new LoginResult(userData.getUsername(), authData.getAuthToken());
                 }
-            } else {
+            } else if(req.getPassword() != null) {
                 throw new UnauthorizedResponse("unauthorized");
+            } else {
+                throw new BadRequestResponse("no password provided");
             }
-        } else {
+        } else if(req.getUsername() != null) {
             throw new UnauthorizedResponse("username not found");
+        } else {
+            throw new BadRequestResponse("username not provided");
         }
     }
 
-    public LogoutResult logout(LogoutRequest req) {
+    public LogoutResult logout(LogoutRequest req) throws UnauthorizedResponse {
         AuthData authData = dbAccess.getAuth(req.getAuthToken());
         if(authData != null) {
             return new LogoutResult(dbAccess.deleteAuth(authData));
@@ -69,7 +81,7 @@ public class ChessService {
         }
     }
 
-    public ListGamesResult listGames(ListGamesRequest req) {
+    public ListGamesResult listGames(ListGamesRequest req) throws UnauthorizedResponse {
         AuthData authData = dbAccess.getAuth(req.getAuthToken());
         if(authData != null) {
             return new ListGamesResult(dbAccess.listGames());
@@ -78,7 +90,7 @@ public class ChessService {
         }
     }
 
-    public CreateGameResult createGame(CreateGameRequest req) {
+    public CreateGameResult createGame(CreateGameRequest req) throws UnauthorizedResponse {
         AuthData authData = dbAccess.getAuth(req.getAuthToken());
         if(authData != null) {
             GameData gameData = dbAccess.createGame(req.getGameName());
@@ -108,7 +120,7 @@ public class ChessService {
         }
     }
 
-    public ClearResult clearDatabases(ClearRequest req) {
+    public ClearResult clearDatabases(ClearRequest req) throws BadRequestResponse {
         if(dbAccess.clearGames()) {
             if(dbAccess.clearUsers()) {
                 if(dbAccess.clearAuths()) {
@@ -120,6 +132,7 @@ public class ChessService {
     }
 
     private boolean checkPassword(String password1, String password2) {
+        if(password1 == null || password2 == null) return false;
         return password1.equals(password2);
     }
 

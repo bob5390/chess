@@ -1,5 +1,7 @@
 package server;
 
+import java.util.Map;
+
 import com.google.gson.Gson;
 
 import io.javalin.*;
@@ -32,14 +34,14 @@ public class Server {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 
         // Register your endpoints and exception handlers here.
-        javalin.get("/game", this::listGames)
+        javalin.exception(HttpResponseException.class, this::exceptionHandler)
+               .get("/game", this::listGames)
                .post("/game", this::createGame)
                .post("/user", this::registerUser)
                .post("/session", this::login)
                .put("/game", this::joinGame)
                .delete("/session", this::logout)
-               .delete("/db", this::clearDatabases)
-               .exception(HttpResponseException.class, this::exceptionHandler);
+               .delete("/db", this::clearDatabases);
     }
 
     public int run(int desiredPort) {
@@ -53,7 +55,7 @@ public class Server {
 
     private void exceptionHandler(HttpResponseException ex, Context ctx) {
         ctx.status(ex.getStatus()); // http status code from ex
-        ctx.result(gson.toJson(ex.getMessage())); // json result from ex
+        ctx.result(gson.toJson(Map.of("message", "Error: "+ex.getMessage()))); // json result from ex
     }
 
     private void registerUser(Context ctx) throws HttpResponseException {
