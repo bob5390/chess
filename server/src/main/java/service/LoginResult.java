@@ -8,8 +8,8 @@ import dataaccess.AuthData;
 import dataaccess.UserData;
 
 public class LoginResult {
-    AuthData authData;
-    UserData userData;
+    private AuthData authData;
+    private UserData userData;
 
     public LoginResult(AuthData authData, UserData userData) {
         this.authData = authData;

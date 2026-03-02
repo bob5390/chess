@@ -7,8 +7,8 @@ import com.google.gson.Gson;
 import dataaccess.*;
 
 public class RegisterResult {
-    UserData userData;
-    AuthData authData;
+    private UserData userData;
+    private AuthData authData;
 
     public RegisterResult(AuthData authData, UserData userData) {
         this.userData = userData;

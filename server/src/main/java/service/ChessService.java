@@ -44,7 +44,12 @@ public class ChessService {
     }
 
     public LogoutResult logout(LogoutRequest req) {
-        throw new NotImplementedError();
+        AuthData authData = dbAccess.getAuth(req.getAuthToken());
+        if(authData != null) {
+            return new LogoutResult(dbAccess.deleteAuth(authData));
+        } else {
+            throw new UnauthorizedResponse("unauthorized");
+        }
     }
 
     public ListGamesResult listGames(ListGamesRequest req) {
