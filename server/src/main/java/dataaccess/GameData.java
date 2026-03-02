@@ -1,12 +1,30 @@
 package dataaccess;
 
+import java.util.Map;
+
+import com.google.gson.Gson;
+
 public class GameData {
     private String gameID;
     private String blackUsername;
     private String whiteUsername;
+    private String gameName;
 
+    public GameData(String gameID, String blackUsername, String whiteUsername, String gameName) {
+        this.gameID = gameID;
+        this.blackUsername = blackUsername;
+        this.whiteUsername = whiteUsername;
+        this.gameName = gameName;
+    }
 
     public String getGameID() { return gameID; }
     public String getBlackUsername() { return blackUsername; }
     public String getWhiteUsername() { return whiteUsername; }
+    public String getGameName() { return gameName; }
+    public Map<String, String> getMap() { 
+        return Map.of("gameID", gameID, "whiteUsername", whiteUsername, "blackUsername", blackUsername, "gameName", gameName);
+    }
+    public String toJson() {
+        return new Gson().toJson(getMap());
+    }
 }

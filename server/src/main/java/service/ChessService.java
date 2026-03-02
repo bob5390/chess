@@ -1,17 +1,14 @@
 package service;
 
-import java.util.Collection;
-
 import chess.ChessGame;
-import dataaccess.AlreadyTakenException;
 import dataaccess.AuthData;
 import dataaccess.DataAccess;
 import dataaccess.GameData;
 import dataaccess.MemoryDataAccess;
 import dataaccess.UserData;
 import io.javalin.http.BadRequestResponse;
+import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
-import kotlin.NotImplementedError;
 
 public class ChessService {
     DataAccess dbAccess;
@@ -20,10 +17,10 @@ public class ChessService {
         dbAccess = new MemoryDataAccess();
     }
 
-    public RegisterResult register(RegisterRequest req) throws AlreadyTakenException {
+    public RegisterResult register(RegisterRequest req) throws ForbiddenResponse {
         UserData userData = dbAccess.getUser(req.getUsername());
         if(userData != null) {
-            throw new AlreadyTakenException("username already taken");
+            throw new ForbiddenResponse("username already taken");
         } else {
             userData = dbAccess.createUser(userData);
             AuthData authData = dbAccess.createAuth(userData);
@@ -74,7 +71,7 @@ public class ChessService {
         }
     }
 
-    public JoinGameResult joinGame(JoinGameRequest req) throws AlreadyTakenException {
+    public JoinGameResult joinGame(JoinGameRequest req) throws ForbiddenResponse {
         AuthData authData = dbAccess.getAuth(req.getAuthToken());
         if(authData != null) {
             UserData userData = dbAccess.getUser(authData);
@@ -84,7 +81,7 @@ public class ChessService {
                     gameData = dbAccess.updateGame(gameData, userData);
                     return new JoinGameResult(gameData);
                 } else {
-                    throw new AlreadyTakenException("cannot join, game already taken");
+                    throw new ForbiddenResponse("cannot join, game already taken");
                 }    
             } else {
                 throw new BadRequestResponse("bad request");

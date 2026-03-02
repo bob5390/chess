@@ -1,12 +1,26 @@
 package server;
 
+import java.util.Map;
+
 import com.google.gson.Gson;
 
-import dataaccess.DataAccessException;
 import io.javalin.*;
 import io.javalin.http.Context;
+import io.javalin.http.HttpResponseException;
 import service.ChessService;
+import service.ClearRequest;
+import service.CreateGameRequest;
+import service.CreateGameResult;
+import service.JoinGameRequest;
+import service.JoinGameResult;
+import service.ListGamesRequest;
+import service.ListGamesResult;
+import service.LoginRequest;
+import service.LoginResult;
+import service.LogoutRequest;
+import service.LogoutResult;
 import service.RegisterRequest;
+import service.RegisterResult;
 
 public class Server {
     private final ChessService service;
@@ -26,7 +40,7 @@ public class Server {
                .put("/game", this::joinGame)
                .delete("/session", this::logout)
                .delete("/db", this::clearDatabases)
-               .exception(DataAccessException.class, this::exceptionHandler);
+               .exception(HttpResponseException.class, this::exceptionHandler);
     }
 
     public int run(int desiredPort) {
@@ -38,54 +52,48 @@ public class Server {
         javalin.stop();
     }
 
-    private void exceptionHandler(DataAccessException ex, Context ctx) {
-        ctx.status(ex.toHttpStatusCode()); // http status code from ex
-        ctx.result(ex.toJson()); // json result from ex
+    private void exceptionHandler(HttpResponseException ex, Context ctx) {
+        ctx.status(ex.getStatus()); // http status code from ex
+        ctx.result(new Gson().toJson(ex.getMessage())); // json result from ex
     }
 
-    private void listGames(Context ctx) throws DataAccessException {
-        // ctx.result(service.listGames().toString());
+    private void listGames(Context ctx) throws HttpResponseException {
+        ListGamesResult result = service.listGames(new ListGamesRequest(ctx.header("authToken")));
+        ctx.result(result.toJson());
     }
 
-    private void createGame(Context ctx) throws DataAccessException {
-        // make game from json
-        // make create game request and send off to handler
-        // result to json
-        ctx.result();
+    private void createGame(Context ctx) throws HttpResponseException {
+        Map<String, String> body = new Gson().fromJson(ctx.body(), Map.class);
+        CreateGameRequest request = new CreateGameRequest(ctx.header("authToken"), body.get("gameName"));
+        CreateGameResult result = service.createGame(request);
+        ctx.result(result.toJson());
     }
 
-    private void joinGame(Context ctx) throws DataAccessException {
-        // make join game request
-        // send off to handler
-        // result to json
-        ctx.result();
+    private void joinGame(Context ctx) throws HttpResponseException {
+        JoinGameRequest request = new JoinGameRequest(ctx.header("authToken"), ctx.body());
+        JoinGameResult result = service.joinGame(request);
+        ctx.result(result.toJson());
     }
 
-    private void clearDatabases(Context ctx) throws DataAccessException {
-        // clear request
-        // send off to handler
-        // result to json
-        ctx.result();
+    private void clearDatabases(Context ctx) throws HttpResponseException {
+        ctx.result(service.clearDatabases(new ClearRequest()).toJson());
     }
 
-    private void registerUser(Context ctx) throws DataAccessException {
-        service.register(new RegisterRequest(new Gson().toJson(ctx.body())));
-        // send off to handler
-        // result to json
-        ctx.result();
+    private void registerUser(Context ctx) throws HttpResponseException {
+        RegisterResult result = service.register(new RegisterRequest(ctx.body()));
+        ctx.result(result.toJson());
     }
 
-    private void login(Context ctx) throws DataAccessException {
-        // login request
-        // send to handler
-        // result to json
-        ctx.result();
+    private void login(Context ctx) throws HttpResponseException {
+        Map<String, String> request = new Gson().fromJson(ctx.body(), Map.class);
+        String username = request.get("username");
+        String password = request.get("password");
+        LoginResult result = service.login(new LoginRequest(username, password));
+        ctx.result(result.toJson());
     }
 
-    private void logout(Context ctx) throws DataAccessException {
-        // logout request
-        // send to handler
-        // result to json
-        ctx.result();
+    private void logout(Context ctx) throws HttpResponseException {
+        LogoutResult result = service.logout(new LogoutRequest(ctx.header("authToken")));
+        ctx.result(result.toJson());
     }
 }
