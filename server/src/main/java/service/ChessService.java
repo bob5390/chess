@@ -2,7 +2,6 @@ package service;
 
 import chess.ChessGame;
 import dataaccess.AuthData;
-import dataaccess.DataAccess;
 import dataaccess.GameData;
 import dataaccess.MemoryDataAccess;
 import dataaccess.UserData;
@@ -11,7 +10,7 @@ import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 
 public class ChessService {
-    DataAccess dbAccess;
+    MemoryDataAccess dbAccess;
 
     public ChessService() {
         dbAccess = new MemoryDataAccess();
@@ -22,9 +21,10 @@ public class ChessService {
         if(userData != null) {
             throw new ForbiddenResponse("username already taken");
         } else {
-            userData = dbAccess.createUser(userData);
-            AuthData authData = dbAccess.createAuth(userData);
-            return new RegisterResult(authData, userData);
+            userData = new UserData(req.getUsername(), req.getPassword(), req.getEmail());
+            String authToken = dbAccess.createUser(userData);
+            AuthData authData = dbAccess.createAuth(authToken, userData.getUsername());
+            return new RegisterResult(authData.getAuthToken(), userData.getUsername());
         }
     }
 
@@ -33,7 +33,12 @@ public class ChessService {
         if(userData != null) {
             if(checkPassword(req.getPassword(), userData.getPassword())) {
                 AuthData authData = dbAccess.getAuth(userData);
-                return new LoginResult(authData, userData);
+                if(authData == null) {
+                    authData = dbAccess.createAuth(userData.getUsername());
+                    return new LoginResult(userData.getUsername(), authData.getAuthToken());
+                } else {
+                    throw new BadRequestResponse("already logged in");
+                }
             } else {
                 throw new UnauthorizedResponse("unauthorized");
             }
@@ -63,7 +68,7 @@ public class ChessService {
     public CreateGameResult createGame(CreateGameRequest req) {
         AuthData authData = dbAccess.getAuth(req.getAuthToken());
         if(authData != null) {
-            UserData userData = dbAccess.getUser(authData);
+            UserData userData = dbAccess.getUser(authData.getUsername());
             GameData gameData = dbAccess.createGame(req.getGameName(), userData);
             return new CreateGameResult(gameData, userData);
         } else {
@@ -74,7 +79,7 @@ public class ChessService {
     public JoinGameResult joinGame(JoinGameRequest req) throws ForbiddenResponse {
         AuthData authData = dbAccess.getAuth(req.getAuthToken());
         if(authData != null) {
-            UserData userData = dbAccess.getUser(authData);
+            UserData userData = dbAccess.getUser(authData.getUsername());
             GameData gameData = dbAccess.getGame(req.getGameID());
             if(gameData != null) {
                 if(checkTeamColor(req.getTeamColor(), gameData)) {

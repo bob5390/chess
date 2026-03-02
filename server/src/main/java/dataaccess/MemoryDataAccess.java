@@ -1,42 +1,63 @@
 package dataaccess;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.UUID;
 
 public class MemoryDataAccess implements DataAccess {
+    private HashMap<String, UserData> userDataMap;
+    private HashMap<Integer, GameData> gameDataMap;
+    private HashMap<String, AuthData> authDataMap;
+    private int gameId;
+
+    public MemoryDataAccess() {
+        userDataMap = new HashMap<>();
+        gameDataMap = new HashMap<>();
+        authDataMap = new HashMap<>();
+        gameId = 0;
+    }
 
     @Override
     public UserData getUser(String username) {
-        throw new UnsupportedOperationException("Unimplemented method 'getUser'");
+        return userDataMap.get(username);
     }
 
     @Override
-    public UserData getUser(AuthData authData) {
-        throw new UnsupportedOperationException("Unimplemented method 'getUser'");
-    }
-
-    @Override
-    public UserData createUser(UserData userData) {
-        throw new UnsupportedOperationException("Unimplemented method 'createUser'");
+    public String createUser(UserData userData) {
+        String authToken = UUID.randomUUID().toString();
+        userDataMap.put(userData.getUsername(), userData);
+        return authToken;
     }
 
     @Override
     public AuthData getAuth(String authToken) {
-        throw new UnsupportedOperationException("Unimplemented method 'getAuth'");
+        return authDataMap.get(authToken);
     }
 
-    @Override
     public AuthData getAuth(UserData userData) {
-        throw new UnsupportedOperationException("Unimplemented method 'getAuth'");
+        for(AuthData i : authDataMap.values()) {
+            if(i.getUsername() == userData.getUsername()) return i;
+        }
+        return null;
     }
 
     @Override
-    public AuthData createAuth(UserData userData) {
-        throw new UnsupportedOperationException("Unimplemented method 'createAuth'");
+    public AuthData createAuth(String authToken, String username) {
+        AuthData toReturn = new AuthData(authToken, username);
+        authDataMap.put(authToken, toReturn);
+        return toReturn;
+    }
+
+    @Override
+    public AuthData createAuth(String username) {
+        AuthData toReturn = new AuthData(UUID.randomUUID().toString(), username);
+        authDataMap.put(toReturn.getAuthToken(), toReturn);
+        return toReturn;
     }
 
     @Override
     public boolean deleteAuth(AuthData authData) {
-        throw new UnsupportedOperationException("Unimplemented method 'deleteAuth'");
+        return (authDataMap.remove(authData.getAuthToken()) == null)? false:true;
     }
 
     @Override

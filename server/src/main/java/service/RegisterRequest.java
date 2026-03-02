@@ -1,25 +1,28 @@
 package service;
 
-import java.util.Map;
-
-import com.google.gson.Gson;
-
 public class RegisterRequest {
-    private Map<String, String> registerData;
+    private String username;
+    private String password;
+    private String email;
 
-    public RegisterRequest(String jsonData) {
-        this.registerData = new Gson().fromJson(jsonData, Map.class);
+    public RegisterRequest(String username, String password, String email) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
     }
 
     public String getUsername() {
-        return registerData.get("username");
+        return username;
     }
 
     public String getPassword() {
-        return registerData.get("password");
+        return password;
     }
 
     public String getEmail() {
-        return registerData.get("email");
+        return email;
+    }
+    public String toString() {
+        return String.format("username: ", username, ", password: ", password, ", email: ", email);
     }
 }

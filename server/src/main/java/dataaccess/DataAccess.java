@@ -4,11 +4,11 @@ import java.util.Collection;
 
 public interface DataAccess {
     public UserData getUser(String username);
-    public UserData getUser(AuthData authData);
-    public UserData createUser(UserData userData);
+    public String createUser(UserData userData);
     public AuthData getAuth(String authToken);
     public AuthData getAuth(UserData userData);
-    public AuthData createAuth(UserData userData);
+    public AuthData createAuth(String authToken, String username);
+    public AuthData createAuth(String username);
     public boolean deleteAuth(AuthData authData);
     public Collection<GameData> listGames();
     public GameData getGame(String gameID);

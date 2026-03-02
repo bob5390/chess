@@ -1,22 +1,14 @@
 package service;
 
-import java.util.Map;
-
-import com.google.gson.Gson;
-
-import dataaccess.AuthData;
-import dataaccess.UserData;
-
 public class LoginResult {
-    private AuthData authData;
-    private UserData userData;
+    private String username;
+    private String authToken;
 
-    public LoginResult(AuthData authData, UserData userData) {
-        this.authData = authData;
-        this.userData = userData;
+    public LoginResult(String username, String authToken) {
+        this.username = username;
+        this.authToken = authToken;
     }
 
-    public String toJson() {
-        return new Gson().toJson(Map.of("username", userData.getUsername(), "authToken", authData.getAuthToken()));
-    }
+    public String getUsername() { return username; }
+    public String getAuthToken() { return authToken; }
 }
