@@ -1,4 +1,4 @@
-package chess.move_calculators;
+package chess.movecalculators;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,7 +50,9 @@ public class PawnMoveCalculator implements ChessMoveCalculator {
                     moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.ROOK));
                     moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.BISHOP));
                     moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.KNIGHT));
-                } else moves.add(new ChessMove(myPosition, new ChessPosition(startX + standardDelta, startY), null));
+                } else {
+                    moves.add(new ChessMove(myPosition, new ChessPosition(startX + standardDelta, startY), null));
+                }
                 if(startX == startRow) { // can move two squares on first move
                     toAdd = new ChessPosition(startX + 2*standardDelta, startY);
                     targetPiece = board.getPiece(toAdd);
@@ -61,7 +63,9 @@ public class PawnMoveCalculator implements ChessMoveCalculator {
                             moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.ROOK));
                             moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.BISHOP));
                             moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.KNIGHT));
-                        } else moves.add(new ChessMove(myPosition, new ChessPosition(startX + 2*standardDelta, startY), null));
+                        } else {
+                            moves.add(new ChessMove(myPosition, new ChessPosition(startX + 2*standardDelta, startY), null));
+                        }
                     }
                 }
             }
@@ -75,7 +79,9 @@ public class PawnMoveCalculator implements ChessMoveCalculator {
                     moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.ROOK));
                     moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.BISHOP));
                     moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.KNIGHT));
-                } else moves.add(new ChessMove(myPosition, new ChessPosition(startX + standardDelta, startY + 1), null));
+                } else {
+                    moves.add(new ChessMove(myPosition, new ChessPosition(startX + standardDelta, startY + 1), null));
+                }
             }
             toAdd = new ChessPosition(startX + standardDelta, startY - 1);
             targetPiece = board.getPiece(toAdd);
@@ -86,7 +92,9 @@ public class PawnMoveCalculator implements ChessMoveCalculator {
                     moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.ROOK));
                     moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.BISHOP));
                     moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.KNIGHT));
-                } else moves.add(new ChessMove(myPosition, new ChessPosition(startX + standardDelta, startY - 1), null));
+                } else {
+                    moves.add(new ChessMove(myPosition, new ChessPosition(startX + standardDelta, startY - 1), null));
+                }
             }
         }
 

@@ -1,4 +1,4 @@
-package chess.move_calculators;
+package chess.movecalculators;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,7 +31,9 @@ public class BishopMoveCalculator implements ChessMoveCalculator {
             ChessPosition toAdd = new ChessPosition(x, y);
             ChessPiece targetPiece = board.getPiece(toAdd);
             if(targetPiece != null) {
-                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
+                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
+                    moves.add(new ChessMove(myPosition, toAdd, null));
+                }
                 break;
             }
             moves.add(new ChessMove(myPosition, toAdd, null));
@@ -41,7 +43,9 @@ public class BishopMoveCalculator implements ChessMoveCalculator {
             ChessPosition toAdd = new ChessPosition(x, y);
             ChessPiece targetPiece = board.getPiece(toAdd);
             if(targetPiece != null) {
-                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
+                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
+                    moves.add(new ChessMove(myPosition, toAdd, null));
+                }
                 break;
             }
             moves.add(new ChessMove(myPosition, toAdd, null));
@@ -51,7 +55,9 @@ public class BishopMoveCalculator implements ChessMoveCalculator {
             ChessPosition toAdd = new ChessPosition(x, y);
             ChessPiece targetPiece = board.getPiece(toAdd);
             if(targetPiece != null) {
-                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
+                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
+                    moves.add(new ChessMove(myPosition, toAdd, null));
+                }
                 break;
             }
             moves.add(new ChessMove(myPosition, toAdd, null));
@@ -61,7 +67,9 @@ public class BishopMoveCalculator implements ChessMoveCalculator {
             ChessPosition toAdd = new ChessPosition(x, y);
             ChessPiece targetPiece = board.getPiece(toAdd);
             if(targetPiece != null) {
-                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
+                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
+                    moves.add(new ChessMove(myPosition, toAdd, null));
+                }
                 break;
             }
             moves.add(new ChessMove(myPosition, toAdd, null));

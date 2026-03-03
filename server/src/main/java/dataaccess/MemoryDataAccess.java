@@ -39,9 +39,9 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     public AuthData getAuth(UserData userData) {
-        if(userData.getUsername() == null) return null;
+        if(userData.getUsername() == null) { return null; }
         for(AuthData i : authDataMap.values()) {
-            if(i.getUsername() == userData.getUsername()) return i;
+            if(i.getUsername() == userData.getUsername()) { return i; }
         }
         return null;
     }

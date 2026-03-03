@@ -1,4 +1,4 @@
-package chess.move_calculators;
+package chess.movecalculators;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,7 +32,9 @@ public class RookMoveCalculator implements ChessMoveCalculator {
             ChessPosition toAdd = new ChessPosition(x, startY);
             ChessPiece targetPiece = board.getPiece(toAdd);
             if(targetPiece != null) {
-                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
+                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
+                    moves.add(new ChessMove(myPosition, toAdd, null));
+                }
                 break;
             }
             moves.add(new ChessMove(myPosition, toAdd, null));
@@ -42,7 +44,9 @@ public class RookMoveCalculator implements ChessMoveCalculator {
             ChessPosition toAdd = new ChessPosition(x, startY);
             ChessPiece targetPiece = board.getPiece(toAdd);
             if(targetPiece != null) {
-                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
+                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
+                    moves.add(new ChessMove(myPosition, toAdd, null));
+                }
                 break;
             }
             moves.add(new ChessMove(myPosition, toAdd, null));
@@ -52,7 +56,9 @@ public class RookMoveCalculator implements ChessMoveCalculator {
             ChessPosition toAdd = new ChessPosition(startX, y);
             ChessPiece targetPiece = board.getPiece(toAdd);
             if(targetPiece != null) {
-                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
+                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
+                    moves.add(new ChessMove(myPosition, toAdd, null));
+                }
                 break;
             }
             moves.add(new ChessMove(myPosition, toAdd, null));
@@ -62,7 +68,9 @@ public class RookMoveCalculator implements ChessMoveCalculator {
             ChessPosition toAdd = new ChessPosition(startX, y);
             ChessPiece targetPiece = board.getPiece(toAdd);
             if(targetPiece != null) {
-                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) moves.add(new ChessMove(myPosition, toAdd, null));
+                if(targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
+                    moves.add(new ChessMove(myPosition, toAdd, null));
+                }
                 break;
             }
             moves.add(new ChessMove(myPosition, toAdd, null));

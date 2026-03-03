@@ -2,12 +2,12 @@ package chess;
 
 import java.util.Collection;
 
-import chess.move_calculators.BishopMoveCalculator;
-import chess.move_calculators.KingMoveCalculator;
-import chess.move_calculators.KnightMoveCalculator;
-import chess.move_calculators.PawnMoveCalculator;
-import chess.move_calculators.QueenMoveCalculator;
-import chess.move_calculators.RookMoveCalculator;
+import chess.movecalculators.BishopMoveCalculator;
+import chess.movecalculators.KingMoveCalculator;
+import chess.movecalculators.KnightMoveCalculator;
+import chess.movecalculators.PawnMoveCalculator;
+import chess.movecalculators.QueenMoveCalculator;
+import chess.movecalculators.RookMoveCalculator;
 
 /**
  * Represents a single chess piece
@@ -80,8 +80,8 @@ public class ChessPiece implements Cloneable {
 
     @Override
     public boolean equals(Object obj) { 
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        if (this == obj) { return true; }
+        if (obj == null || getClass() != obj.getClass()) { return false; }
 
         ChessPiece toTest = (ChessPiece) obj;
         return hashCode() == toTest.hashCode() && pieceColor == toTest.pieceColor && type == toTest.type;

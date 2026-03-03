@@ -11,4 +11,10 @@ public class RegisterResult {
 
     public String getUsername() { return username; }
     public String getAuthToken() { return authToken; }
+
+    @Override
+    public boolean equals(Object obj) {
+        RegisterResult toTest = (RegisterResult)obj;
+        return username.equals(toTest.getUsername()) && authToken.equals(toTest.getAuthToken());
+    }
 }

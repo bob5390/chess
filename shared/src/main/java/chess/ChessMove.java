@@ -50,8 +50,8 @@ public class ChessMove implements Cloneable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        else if (obj == null || getClass() != obj.getClass()) return false;
+        if (this == obj) { return true; }
+        else if (obj == null || getClass() != obj.getClass()) { return false; }
         
         ChessMove toTest = (ChessMove) obj;
         return hashCode() == toTest.hashCode() && 
@@ -71,7 +71,8 @@ public class ChessMove implements Cloneable {
 
     @Override
     public ChessMove clone() {
-        ChessMove clone = new ChessMove(new ChessPosition(startPosition.getRow(), startPosition.getColumn()), new ChessPosition(endPosition.getRow(), endPosition.getColumn()), promotionPiece);
+        ChessMove clone = new ChessMove(new ChessPosition(startPosition.getRow(), startPosition.getColumn()), 
+                                        new ChessPosition(endPosition.getRow(), endPosition.getColumn()), promotionPiece);
         return clone;
     }
 }

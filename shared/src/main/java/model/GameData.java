@@ -1,9 +1,5 @@
 package model;
 
-import java.util.Map;
-
-import com.google.gson.Gson;
-
 public class GameData {
     private String gameID;
     private String blackUsername;
@@ -24,10 +20,4 @@ public class GameData {
     public String getBlackUsername() { return blackUsername; }
     public String getWhiteUsername() { return whiteUsername; }
     public String getGameName() { return gameName; }
-    public Map<String, String> getMap() { 
-        return Map.of("gameID", gameID, "whiteUsername", whiteUsername, "blackUsername", blackUsername, "gameName", gameName);
-    }
-    public String toString() {
-        return new Gson().toJson(this);
-    }
 }

@@ -15,4 +15,10 @@ public class LogoutResult {
     public String toJson() {
         return new Gson().toJson(Map.of("success", success));
     }
+    
+    @Override
+    public boolean equals(Object obj) {
+        LogoutResult toTest = (LogoutResult)obj;
+        return success == toTest.getSuccess();
+    }
 }
