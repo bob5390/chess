@@ -1,4 +1,4 @@
-package passoff.server;
+package service;
 
 import java.util.ArrayList;
 
@@ -8,7 +8,6 @@ import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 import model.GameData;
-import service.ChessService;
 import service.requests.ClearRequest;
 import service.requests.CreateGameRequest;
 import service.requests.JoinGameRequest;
