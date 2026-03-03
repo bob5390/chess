@@ -1,6 +1,7 @@
 package chess.movecalculators;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 import chess.ChessBoard;
@@ -12,6 +13,14 @@ import chess.ChessPosition;
  * Calculates moves for a pawn piece
  */
 public class PawnMoveCalculator implements ChessMoveCalculator {
+
+    private Collection<ChessMove> promotionMoves(ChessPosition startPosition, ChessPosition targetPosition) {
+        return Arrays.asList(
+            new ChessMove(startPosition, targetPosition, ChessPiece.PieceType.QUEEN),
+            new ChessMove(startPosition, targetPosition, ChessPiece.PieceType.ROOK),
+            new ChessMove(startPosition, targetPosition, ChessPiece.PieceType.BISHOP),
+            new ChessMove(startPosition, targetPosition, ChessPiece.PieceType.KNIGHT));
+    }
 
     /**
      * Calculates all the positions a pawn can move to
@@ -39,17 +48,15 @@ public class PawnMoveCalculator implements ChessMoveCalculator {
         ArrayList<ChessMove> moves = new ArrayList<>();
         int startX = myPosition.getRow();
         int startY = myPosition.getColumn();
+        
+        ChessPosition toAdd = new ChessPosition(startX + standardDelta, startY);
         // pawns move forward one square
-        if(startX < 8 && startX > 1) {
-            ChessPosition toAdd = new ChessPosition(startX + standardDelta, startY);
+        if(ChessPosition.validPosition(toAdd)) {
             ChessPiece targetPiece = board.getPiece(toAdd);
             if(targetPiece == null) {
                 if(toAdd.getRow() == 1 || toAdd.getRow() == 8) {
                     // pawn promotion
-                    moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.QUEEN));
-                    moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.ROOK));
-                    moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.BISHOP));
-                    moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.KNIGHT));
+                    moves.addAll(promotionMoves(myPosition, toAdd));
                 } else {
                     moves.add(new ChessMove(myPosition, new ChessPosition(startX + standardDelta, startY), null));
                 }
@@ -57,43 +64,22 @@ public class PawnMoveCalculator implements ChessMoveCalculator {
                     toAdd = new ChessPosition(startX + 2*standardDelta, startY);
                     targetPiece = board.getPiece(toAdd);
                     if(targetPiece == null) {
-                        if(toAdd.getRow() == 1 || toAdd.getRow() == 8) {
-                            // pawn promotion
-                            moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.QUEEN));
-                            moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.ROOK));
-                            moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.BISHOP));
-                            moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.KNIGHT));
-                        } else {
-                            moves.add(new ChessMove(myPosition, new ChessPosition(startX + 2*standardDelta, startY), null));
-                        }
+                        moves.add(new ChessMove(myPosition, new ChessPosition(startX + 2*standardDelta, startY), null));
                     }
                 }
             }
-            // check for captures
-            toAdd = new ChessPosition(startX + standardDelta, startY + 1);
-            targetPiece = board.getPiece(toAdd);
-            if(targetPiece != null && targetPiece.getTeamColor() != piece.getTeamColor()) { // can capture diagonally
-                if(toAdd.getRow() == 1 || toAdd.getRow() == 8) {
-                    // pawn promotion
-                    moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.QUEEN));
-                    moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.ROOK));
-                    moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.BISHOP));
-                    moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.KNIGHT));
-                } else {
-                    moves.add(new ChessMove(myPosition, new ChessPosition(startX + standardDelta, startY + 1), null));
-                }
-            }
-            toAdd = new ChessPosition(startX + standardDelta, startY - 1);
-            targetPiece = board.getPiece(toAdd);
-            if(targetPiece != null && targetPiece.getTeamColor() != piece.getTeamColor()) { // can capture diagonally
-                if(toAdd.getRow() == 1 || toAdd.getRow() == 8) {
-                    // pawn promotion
-                    moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.QUEEN));
-                    moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.ROOK));
-                    moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.BISHOP));
-                    moves.add(new ChessMove(myPosition, toAdd, ChessPiece.PieceType.KNIGHT));
-                } else {
-                    moves.add(new ChessMove(myPosition, new ChessPosition(startX + standardDelta, startY - 1), null));
+
+            int[] deltas = {1, -1};
+            for(int i : deltas) {
+                toAdd = new ChessPosition(startX + standardDelta, startY + i);
+                targetPiece = board.getPiece(toAdd);
+                if(targetPiece != null && targetPiece.getTeamColor() != piece.getTeamColor()) { // can capture diagonally
+                    if(toAdd.getRow() == 1 || toAdd.getRow() == 8) {
+                        // pawn promotion
+                        moves.addAll(promotionMoves(myPosition, toAdd));
+                    } else {
+                        moves.add(new ChessMove(myPosition, new ChessPosition(startX + standardDelta, startY + i), null));
+                    }
                 }
             }
         }
