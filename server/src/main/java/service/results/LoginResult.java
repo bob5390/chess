@@ -14,7 +14,7 @@ public class LoginResult {
 
     @Override
     public boolean equals(Object obj) {
-        LoginResult toTest = (LoginResult)obj;
+        LoginResult toTest = (LoginResult) obj;
         return username.equals(toTest.getUsername()) && authToken.equals(toTest.getAuthToken());
     }
 }

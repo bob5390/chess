@@ -14,7 +14,7 @@ public class RegisterResult {
 
     @Override
     public boolean equals(Object obj) {
-        RegisterResult toTest = (RegisterResult)obj;
+        RegisterResult toTest = (RegisterResult) obj;
         return username.equals(toTest.getUsername()) && authToken.equals(toTest.getAuthToken());
     }
 }

@@ -18,7 +18,7 @@ public class LogoutResult {
     
     @Override
     public boolean equals(Object obj) {
-        LogoutResult toTest = (LogoutResult)obj;
+        LogoutResult toTest = (LogoutResult) obj;
         return success == toTest.getSuccess();
     }
 }

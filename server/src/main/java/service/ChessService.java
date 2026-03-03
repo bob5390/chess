@@ -30,7 +30,7 @@ public class ChessService {
         dbAccess = new MemoryDataAccess();
     }
 
-    public RegisterResult register(RegisterRequest req) throws ForbiddenResponse {
+    public RegisterResult register(RegisterRequest req) throws HttpResponseException {
         UserData userData = dbAccess.getUser(req.getUsername());
         if(userData != null) {
             throw new ForbiddenResponse("username already taken");
