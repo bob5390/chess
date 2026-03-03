@@ -29,13 +29,11 @@ public class KingMoveCalculator implements ChessMoveCalculator {
         // all 8 possible directions
         for(int x = startX - 1; x <= startX + 1; x++) {
             for(int y = startY - 1; y <= startY + 1; y++) {
-                if(x >= 1 && x <= 8 && y >= 1 && y <= 8) {
-                    if(!(x == startX && y == startY)) {
-                        ChessPosition toAdd = new ChessPosition(x, y);
-                        ChessPiece targetPiece = board.getPiece(toAdd);
-                        if(targetPiece == null || targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
-                            moves.add(new ChessMove(myPosition, new ChessPosition(x, y), null));
-                        }
+                if(x >= 1 && x <= 8 && y >= 1 && y <= 8 && !(x == startX && y == startY)) {
+                    ChessPosition toAdd = new ChessPosition(x, y);
+                    ChessPiece targetPiece = board.getPiece(toAdd);
+                    if(targetPiece == null || targetPiece.getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
+                        moves.add(new ChessMove(myPosition, new ChessPosition(x, y), null));
                     }
                 }
             }
