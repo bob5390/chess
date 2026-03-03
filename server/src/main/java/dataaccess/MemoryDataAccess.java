@@ -1,6 +1,5 @@
 package dataaccess;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.UUID;
@@ -19,7 +18,7 @@ public class MemoryDataAccess implements DataAccess {
         userDataMap = new HashMap<>();
         gameDataMap = new HashMap<>();
         authDataMap = new HashMap<>();
-        gameId = 0;
+        gameId = 1;
     }
 
     @Override
@@ -68,11 +67,7 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public Collection<GameData> listGames() {
-        Collection<GameData> toReturn = new ArrayList<GameData>();
-        for(GameData i : gameDataMap.values()) {
-            toReturn.add(i);
-        }
-        return toReturn;
+        return gameDataMap.values();
     }
 
     @Override
