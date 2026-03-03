@@ -1,7 +1,5 @@
 package service;
 
-import java.util.UUID;
-
 import dataaccess.MemoryDataAccess;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;

@@ -7,7 +7,6 @@ import com.google.gson.Gson;
 import io.javalin.*;
 import io.javalin.http.Context;
 import io.javalin.http.HttpResponseException;
-import model.GameData;
 import service.ChessService;
 import service.requests.ClearRequest;
 import service.requests.CreateGameRequest;
