@@ -1,5 +1,6 @@
 package service;
 
+import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
@@ -24,10 +25,10 @@ import service.results.LogoutResult;
 import service.results.RegisterResult;
 
 public class ChessService {
-    MemoryDataAccess dbAccess;
+    DataAccess dbAccess;
 
-    public ChessService() {
-        dbAccess = new MemoryDataAccess();
+    public ChessService(DataAccess dataAccess) {
+        dbAccess = dataAccess;
     }
 
     public RegisterResult register(RegisterRequest req) throws HttpResponseException {

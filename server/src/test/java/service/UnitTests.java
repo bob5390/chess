@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.junit.jupiter.api.Test;
 
+import dataaccess.MemoryDataAccess;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
@@ -24,7 +25,7 @@ import service.results.LogoutResult;
 import service.results.RegisterResult;
 
 public class UnitTests {
-    ChessService service = new ChessService();
+    ChessService service = new ChessService(new MemoryDataAccess());
 
     @Test
     public void testRegister() {
