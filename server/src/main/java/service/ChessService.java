@@ -3,7 +3,6 @@ package service;
 import org.mindrot.jbcrypt.BCrypt;
 
 import dataaccess.DataAccess;
-import dataaccess.MemoryDataAccess;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.HttpResponseException;

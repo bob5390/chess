@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import static java.sql.Statement.RETURN_GENERATED_KEYS;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -49,7 +51,7 @@ public class SQLDataAccess implements DataAccess {
             `whiteUsername` varchar(256) NOT NULL,
             `blackUsername` varchar(256) NOT NULL,
             `chessGameJson` TEXT NOT NULL,
-            `gameDataJson` TEXT NOT NULL
+            `gameDataJson` TEXT
         )
         """
     };
@@ -73,8 +75,8 @@ public class SQLDataAccess implements DataAccess {
     @Override
     public UserData getUser(String username) throws HttpResponseException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            PreparedStatement preparedStatement = conn.prepareStatement(
-                "SELECT userDataJson FROM userData WHERE username=?");
+            String statement = "SELECT userDataJson FROM userData WHERE username=?";
+            PreparedStatement preparedStatement = conn.prepareStatement(statement);
             ResultSet result = preparedStatement.executeQuery();
             result.next(); // get first entry
             UserData toReturn = gson.fromJson(result.getString("userDataJson"), UserData.class);
@@ -121,62 +123,300 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public AuthData getAuth(String authToken) throws HttpResponseException {
-        throw new UnsupportedOperationException("Unimplemented method 'getAuth'");
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "SELECT authDataJson FROM authData WHERE authToken=?";
+            PreparedStatement preparedStatement = conn.prepareStatement(statement);
+            preparedStatement.setString(1, authToken);
+            ResultSet result = preparedStatement.executeQuery();
+            result.next();
+            AuthData toReturn = gson.fromJson(result.getString("authDataJson"), AuthData.class);
+            return toReturn;
+        } catch (SQLException e) {
+            throw new InternalServerErrorResponse("Failed to close connection or execute query: " + e.getMessage());
+        } catch (DataAccessException e) {
+            throw new InternalServerErrorResponse("Failed to connect to database: " + e.getMessage());
+        }
     }
 
     @Override
     public AuthData getAuth(UserData userData) throws HttpResponseException {
-        throw new UnsupportedOperationException("Unimplemented method 'getAuth'");
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "SELECT authDataJson FROM authData WHERE username=?";
+            PreparedStatement preparedStatement = conn.prepareStatement(statement);
+            preparedStatement.setString(1, userData.getUsername());
+            ResultSet result = preparedStatement.executeQuery();
+            result.next();
+            AuthData toReturn = gson.fromJson(result.getString("authDataJson"), AuthData.class);
+            return toReturn;
+        } catch (SQLException e) {
+            throw new InternalServerErrorResponse("Failed to close connection or execute query: " + e.getMessage());
+        } catch (DataAccessException e) {
+            throw new InternalServerErrorResponse("Failed to connect to database: " + e.getMessage());
+        }
     }
 
     @Override
     public AuthData createAuth(String authToken, String username) throws HttpResponseException {
-        throw new UnsupportedOperationException("Unimplemented method 'createAuth'");
+        Connection conn = null;
+        try (Connection c = DatabaseManager.getConnection()) {
+            conn = c;
+            conn.setAutoCommit(false);
+            String statement = "INSERT INTO authData (authToken, username, authDataJson) VALUES (?, ?, ?)";
+            AuthData authData = new AuthData(authToken, username);
+            PreparedStatement preparedStatement = conn.prepareStatement(statement);
+            preparedStatement.setString(1, authToken);
+            preparedStatement.setString(2, username);
+            preparedStatement.setString(3, gson.toJson(authData));
+            preparedStatement.executeUpdate();
+            conn.commit();
+            return authData;
+        } catch (SQLException e) {
+            try {
+                if(conn != null && !conn.isClosed()) {
+                    conn.rollback();
+                }
+            } catch (SQLException e1) {
+                throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
+            }
+            throw new InternalServerErrorResponse("Failed to close connection to database or insert auth data: " + e.getMessage());
+        } catch (DataAccessException e) {
+            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+        }
     }
 
     @Override
     public AuthData createAuth(String username) throws HttpResponseException {
-        throw new UnsupportedOperationException("Unimplemented method 'createAuth'");
+        return createAuth(UUID.randomUUID().toString(), username);
     }
 
     @Override
     public boolean deleteAuth(AuthData authData) throws HttpResponseException {
-        throw new UnsupportedOperationException("Unimplemented method 'deleteAuth'");
+        Connection conn = null;
+        try (Connection c = DatabaseManager.getConnection()) {
+            conn = c;
+            conn.setAutoCommit(false);
+
+            String statement = "DELETE FROM authData WHERE authToken=?";
+            PreparedStatement preparedStatement = conn.prepareStatement(statement);
+            preparedStatement.setString(1, authData.getAuthToken());
+            preparedStatement.executeUpdate();
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            try {
+                if(conn != null && !conn.isClosed()) {
+                    conn.rollback();
+                }
+            } catch (SQLException e1) {
+                throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
+            }
+            throw new InternalServerErrorResponse("Failed to close connection to database or insert auth data: " + e.getMessage());
+        } catch (DataAccessException e) {
+            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+        }
     }
 
     @Override
     public Collection<GameData> listGames() throws HttpResponseException {
-        throw new UnsupportedOperationException("Unimplemented method 'listGames'");
+        try (Connection conn = DatabaseManager.getConnection()) {
+            Collection<GameData> toReturn = new ArrayList<GameData>();
+            String statement = "SELECT gameDataJson FROM gameData";
+            PreparedStatement preparedStatement = conn.prepareStatement(statement);
+            ResultSet result = preparedStatement.executeQuery();
+            while(result.next()) {
+                toReturn.add(gson.fromJson(result.getString("gameDataJson"), GameData.class));
+            }
+            return toReturn;
+        } catch (SQLException e) {
+            throw new InternalServerErrorResponse("Failed to close connection or execute query: " + e.getMessage());
+        } catch (DataAccessException e) {
+            throw new InternalServerErrorResponse("Failed to connect to database: " + e.getMessage());
+        }
     }
 
     @Override
     public GameData getGame(String gameID) throws HttpResponseException {
-        throw new UnsupportedOperationException("Unimplemented method 'getGame'");
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "SELECT gameDataJson FROM gameData WHERE gameID=?";
+            PreparedStatement preparedStatement = conn.prepareStatement(statement);
+            preparedStatement.setString(1, gameID);
+            ResultSet result = preparedStatement.executeQuery();
+            result.next();
+            return gson.fromJson(result.getString("gameDataJson"), GameData.class);
+        } catch (SQLException e) {
+            throw new InternalServerErrorResponse("Failed to close connection or execute query: " + e.getMessage());
+        } catch (DataAccessException e) {
+            throw new InternalServerErrorResponse("Failed to connect to database: " + e.getMessage());
+        }
     }
 
     @Override
     public GameData createGame(String gameName) throws HttpResponseException {
-        throw new UnsupportedOperationException("Unimplemented method 'createGame'");
+        Connection conn = null;
+        try (Connection c = DatabaseManager.getConnection()) {
+            conn = c;
+            conn.setAutoCommit(false);
+
+            GameData gameData = new GameData(null, null, gameName);
+            String statement = 
+                "INSERT INTO gameData (gameName, whiteUsername, blackUsername, chessGameJson, gameDataJson) VALUES (?, ?, ?, ?, ?)";
+            PreparedStatement preparedStatement = conn.prepareStatement(statement, RETURN_GENERATED_KEYS);
+            preparedStatement.setString(1, gameName);
+            preparedStatement.setString(2, null);
+            preparedStatement.setString(3, null);
+            preparedStatement.setString(4, gson.toJson(gameData.getChessGame()));
+            preparedStatement.setString(5, gson.toJson(gameData));
+            preparedStatement.executeUpdate();
+            ResultSet result = preparedStatement.getGeneratedKeys();
+            result.next();
+            int gameId = result.getInt(1);
+            gameData.setGameID(Integer.toString(gameId));
+
+            statement = "UPDATE gameData SET gameDataJson=? WHERE id=?";
+            preparedStatement = conn.prepareStatement(statement);
+            preparedStatement.setString(1, gson.toJson(gameData));
+            preparedStatement.setInt(2, gameId);
+            preparedStatement.executeUpdate();
+
+            conn.commit();
+            return gameData;
+        } catch (SQLException e) {
+            try {
+                if(conn != null && !conn.isClosed()) {
+                    conn.rollback();
+                }
+            } catch (SQLException e1) {
+                throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
+            }
+            throw new InternalServerErrorResponse("Failed to close connection to database or insert game data: " + e.getMessage());
+        } catch (DataAccessException e) {
+            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+        }
     }
 
     @Override
     public GameData updateGame(GameData gameData, UserData userData, String teamColor) throws HttpResponseException {
-        throw new UnsupportedOperationException("Unimplemented method 'updateGame'");
+        Connection conn = null;
+        try (Connection c = DatabaseManager.getConnection()) {
+            conn = c;
+            conn.setAutoCommit(false);
+
+            String statement = "";
+            switch (teamColor) {
+                case "WHITE":
+                    statement = "UPDATE gameData SET whiteUsername=? WHERE id=?";
+                    gameData.setWhiteUsername(userData.getUsername());
+                    break;
+                case "BLACK":
+                    statement = "UPDATE gameData SET blackUsername=? WHERE id=?";
+                    gameData.setBlackUsername(userData.getUsername());
+                    break;
+                default:
+                    break;
+            }
+            if(statement != "") {
+                PreparedStatement preparedStatement = conn.prepareStatement(statement);
+                preparedStatement.setString(1, userData.getUsername());
+                preparedStatement.setInt(2, Integer.parseInt(gameData.getGameID()));
+                preparedStatement.executeUpdate();
+            }
+
+            conn.commit();
+            return gameData;
+        } catch (SQLException e) {
+            try {
+                if(conn != null && !conn.isClosed()) {
+                    conn.rollback();
+                }
+            } catch (SQLException e1) {
+                throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
+            }
+            throw new InternalServerErrorResponse("Failed to close connection to database or update game data: " + e.getMessage());
+        } catch (DataAccessException e) {
+            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+        }
     }
 
     @Override
     public boolean clearGames() throws HttpResponseException {
-        throw new UnsupportedOperationException("Unimplemented method 'clearGames'");
+        Connection conn = null;
+        try (Connection c = DatabaseManager.getConnection()) {
+            conn = c;
+            conn.setAutoCommit(false);
+
+            String statement = "TRUNCATE TABLE gameData";
+            PreparedStatement preparedStatement = conn.prepareStatement(statement);
+            preparedStatement.executeUpdate();
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            try {
+                if(conn != null && !conn.isClosed()) {
+                    conn.rollback();
+                }
+            } catch (SQLException e1) {
+                throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
+            }
+            throw new InternalServerErrorResponse("Failed to close connection to database or insert auth data: " + e.getMessage());
+        } catch (DataAccessException e) {
+            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+        }
     }
 
     @Override
     public boolean clearAuths() throws HttpResponseException {
-        throw new UnsupportedOperationException("Unimplemented method 'clearAuths'");
+        Connection conn = null;
+        try (Connection c = DatabaseManager.getConnection()) {
+            conn = c;
+            conn.setAutoCommit(false);
+
+            String statement = "TRUNCATE TABLE authData";
+            PreparedStatement preparedStatement = conn.prepareStatement(statement);
+            preparedStatement.executeUpdate();
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            try {
+                if(conn != null && !conn.isClosed()) {
+                    conn.rollback();
+                }
+            } catch (SQLException e1) {
+                throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
+            }
+            throw new InternalServerErrorResponse("Failed to close connection to database or insert auth data: " + e.getMessage());
+        } catch (DataAccessException e) {
+            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+        }
     }
 
     @Override
     public boolean clearUsers() throws HttpResponseException {
-        throw new UnsupportedOperationException("Unimplemented method 'clearUsers'");
+        Connection conn = null;
+        try (Connection c = DatabaseManager.getConnection()) {
+            conn = c;
+            conn.setAutoCommit(false);
+
+            String statement = "TRUNCATE TABLE userData";
+            PreparedStatement preparedStatement = conn.prepareStatement(statement);
+            preparedStatement.executeUpdate();
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            try {
+                if(conn != null && !conn.isClosed()) {
+                    conn.rollback();
+                }
+            } catch (SQLException e1) {
+                throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
+            }
+            throw new InternalServerErrorResponse("Failed to close connection to database or insert auth data: " + e.getMessage());
+        } catch (DataAccessException e) {
+            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+        }
     }
 
 }

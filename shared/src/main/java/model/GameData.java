@@ -17,6 +17,11 @@ public class GameData {
         this.chessGame = new ChessGame();
     }
 
+    public GameData(String blackUsername, String whiteUsername, String gameName) {
+        this(null, blackUsername, whiteUsername, gameName);
+    }
+
+    public void setGameID(String gameID) { this.gameID = gameID; }
     public void setBlackUsername(String username) { blackUsername = username; }
     public void setWhiteUsername(String username) { whiteUsername = username; }
 
