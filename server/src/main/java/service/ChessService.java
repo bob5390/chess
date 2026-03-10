@@ -1,5 +1,7 @@
 package service;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
 import io.javalin.http.BadRequestResponse;
@@ -37,7 +39,8 @@ public class ChessService {
             throw new ForbiddenResponse("username already taken");
         } else if(req.getUsername() != null) {
             if(req.getPassword() != null) {
-                userData = new UserData(req.getUsername(), req.getPassword(), req.getEmail());
+                String encryptedPassword = BCrypt.hashpw(req.getPassword(), BCrypt.gensalt());
+                userData = new UserData(req.getUsername(), encryptedPassword, req.getEmail());
                 String authToken = dbAccess.createUser(userData);
                 AuthData authData = dbAccess.createAuth(authToken, userData.getUsername());
                 return new RegisterResult(authData.getAuthToken(), userData.getUsername());
@@ -134,9 +137,9 @@ public class ChessService {
         throw new BadRequestResponse("could not clear databas(es)");
     }
 
-    private boolean checkPassword(String password1, String password2) {
-        if(password1 == null || password2 == null) { return false; }
-        return password1.equals(password2);
+    private boolean checkPassword(String plainPassword, String encryptedPassword) {
+        if(plainPassword == null || encryptedPassword == null) { return false; }
+        return BCrypt.checkpw(plainPassword, encryptedPassword);
     }
 
     private boolean checkTeamColor(String teamColor, GameData gameData) {
