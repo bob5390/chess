@@ -2,8 +2,13 @@ package dataaccess;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.UUID;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import io.javalin.http.HttpResponseException;
 import io.javalin.http.InternalServerErrorResponse;
@@ -12,8 +17,10 @@ import model.GameData;
 import model.UserData;
 
 public class SQLDataAccess implements DataAccess {
-    public SQLDataAccess() {
+    private Gson gson;
 
+    public SQLDataAccess() {
+        gson = new Gson();
     }
 
     private final String[] createStatements = {
@@ -56,23 +63,60 @@ public class SQLDataAccess implements DataAccess {
                     preparedStatement.executeUpdate();
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
                 throw new InternalServerErrorResponse("Failed table creation for database");
             }
         } catch (DataAccessException e) {
-            e.printStackTrace();
             throw new InternalServerErrorResponse("Failed to create database");
         }
     }
 
     @Override
     public UserData getUser(String username) throws HttpResponseException {
-        throw new UnsupportedOperationException("Unimplemented method 'getUser'");
+        try (Connection conn = DatabaseManager.getConnection()) {
+            PreparedStatement preparedStatement = conn.prepareStatement(
+                "SELECT userDataJson FROM userData WHERE username=?");
+            ResultSet result = preparedStatement.executeQuery();
+            result.next(); // get first entry
+            UserData toReturn = gson.fromJson(result.getString("userDataJson"), UserData.class);
+            return toReturn;
+        } catch (DataAccessException e) {
+            throw new InternalServerErrorResponse("Failed to connect to database: " + e.getMessage());
+        } catch (SQLException e) {
+            throw new InternalServerErrorResponse("Failed to close connection to database or execute query: " + e.getMessage());
+        } catch (JsonSyntaxException e) {
+            throw new InternalServerErrorResponse("Incorrect json syntax stored in database: " + e.getMessage());
+        }
     }
 
     @Override
     public String createUser(UserData userData) throws HttpResponseException {
-        throw new UnsupportedOperationException("Unimplemented method 'createUser'");
+        Connection conn = null;
+        try (Connection c = DatabaseManager.getConnection()) {
+            conn = c;
+            conn.setAutoCommit(false);
+            String authToken = UUID.randomUUID().toString();
+            String statement = "INSERT INTO userData (username, password, email, userDataJson) VALUES (?, ?, ?, ?)";
+            PreparedStatement preparedStatement = conn.prepareStatement(statement);
+            String userDataJson = gson.toJson(userData);
+            preparedStatement.setString(1, userData.getUsername());
+            preparedStatement.setString(2, userData.getPassword()); // assume stored data is always encrypted
+            preparedStatement.setString(3, userData.getEmail());
+            preparedStatement.setString(4, userDataJson);
+            preparedStatement.executeUpdate();
+            conn.commit();
+            return authToken;
+        } catch (SQLException e) {
+            try {
+                if(conn != null && !conn.isClosed()) {
+                    conn.rollback();
+                }
+            } catch (SQLException e1) {
+                throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
+            }
+            throw new InternalServerErrorResponse("Failed to close connection to database or insert user data: " + e.getMessage());
+        } catch (DataAccessException e) {
+            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+        }
     }
 
     @Override
