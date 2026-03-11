@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 import model.GameData;
@@ -48,7 +49,7 @@ public class SQLDAOTests {
     }
 
     @Test
-    public void testRegisterPass() {
+    public void testRegisterPass() { // TODO: use different positive test
         RegisterResult result = service.register(new RegisterRequest("username", "password", "email"));
         RegisterResult expected = new RegisterResult(result.getAuthToken(), "username");
 
@@ -69,7 +70,7 @@ public class SQLDAOTests {
     }
 
     @Test
-    public void testLoginPass() {
+    public void testLoginPass() { // TODO: use different positive test
         service.register(new RegisterRequest("username", "password", "email"));
         LoginResult result = service.login(new LoginRequest("username", "password"));
         LoginResult expected = new LoginResult("username", result.getAuthToken());
@@ -89,7 +90,7 @@ public class SQLDAOTests {
     }
 
     @Test
-    public void testLogoutPass() {
+    public void testLogoutPass() { // TODO: use different positive test
         RegisterResult registration = service.register(new RegisterRequest("username", "password", "email"));
         LogoutResult result = service.logout(new LogoutRequest(registration.getAuthToken()));
         LogoutResult expected = new LogoutResult(true);
@@ -97,7 +98,7 @@ public class SQLDAOTests {
         assert expected.equals(result);
     }
     @Test
-    public void testLogoutFail() {
+    public void testLogoutFail() { // TODO: use different negative test
         service.register(new RegisterRequest("username", "password", "email"));
         try {
             service.logout(new LogoutRequest("test"));
@@ -108,7 +109,7 @@ public class SQLDAOTests {
     }
 
     @Test
-    public void testCreateGamePass() {
+    public void testCreateGamePass() { // TODO: use different positive test
         RegisterResult registration = service.register(new RegisterRequest("username", "password", "email"));
         CreateGameResult result = service.createGame(new CreateGameRequest(registration.getAuthToken(), "Game 1"));
         CreateGameResult expected = new CreateGameResult("1", result.getChessGame());
@@ -126,7 +127,7 @@ public class SQLDAOTests {
     }
 
     @Test
-    public void testListGamesPass() {
+    public void testListGamesPass() { // TODO: use different positive test
         RegisterResult registration = service.register(new RegisterRequest("username", "password", "email"));
         ListGamesResult result = service.listGames(new ListGamesRequest(registration.getAuthToken()));
         ListGamesResult expected = new ListGamesResult(new ArrayList<GameData>());
@@ -134,7 +135,7 @@ public class SQLDAOTests {
         assert expected.equals(result);
     }
     @Test
-    public void testListGamesFail() {
+    public void testListGamesFail() { // TODO: use different negative test
         service.register(new RegisterRequest("username", "password", "email"));
         try {
             service.listGames(new ListGamesRequest("test"));
@@ -145,7 +146,7 @@ public class SQLDAOTests {
     }
 
     @Test
-    public void testJoinGamePass() {
+    public void testJoinGamePass() { // TODO: use different positive test
         RegisterResult registration = service.register(new RegisterRequest("username", "password", "email"));
         service.createGame(new CreateGameRequest(registration.getAuthToken(), "Game 1"));
         JoinGameResult result = service.joinGame(new JoinGameRequest(registration.getAuthToken(), "WHITE", "1"));
@@ -153,16 +154,16 @@ public class SQLDAOTests {
         assert result != null;
     }
     @Test
-    public void testJoinGameFail() {
+    public void testJoinGameFail() { // TODO: use different negative test
         RegisterResult registration1 = service.register(new RegisterRequest("username1", "password", "email"));
         RegisterResult registration2 = service.register(new RegisterRequest("username2", "password", "email"));
         service.createGame(new CreateGameRequest(registration1.getAuthToken(), "Game 1"));
         try {
             service.joinGame(new JoinGameRequest(registration1.getAuthToken(), "WHITE", "1"));
-            service.joinGame(new JoinGameRequest(registration2.getAuthToken(), "WHITE", "1"));
-        } catch (ForbiddenResponse e) {
+            service.joinGame(new JoinGameRequest(registration2.getAuthToken(), "PURPLE", "1"));
+        } catch (BadRequestResponse e) {
             assert e != null;
-            assert e.getMessage().equals("cannot join, game already taken");
+            assert e.getMessage().equals("invalid team color");
         }
     }
 

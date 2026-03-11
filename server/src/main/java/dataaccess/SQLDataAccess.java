@@ -102,13 +102,8 @@ public class SQLDataAccess implements DataAccess {
             conn.setAutoCommit(false);
             String authToken = UUID.randomUUID().toString();
             String statement = "INSERT INTO userData (username, password, email, userDataJson) VALUES (?, ?, ?, ?)";
-            PreparedStatement preparedStatement = conn.prepareStatement(statement);
             String userDataJson = gson.toJson(userData);
-            preparedStatement.setString(1, userData.getUsername());
-            preparedStatement.setString(2, userData.getPassword()); // assume stored data is always encrypted
-            preparedStatement.setString(3, userData.getEmail());
-            preparedStatement.setString(4, userDataJson);
-            preparedStatement.executeUpdate();
+            runUpdate(conn, statement, userData.getUsername(), userData.getPassword(), userData.getEmail(), userDataJson);
             conn.commit();
             return authToken;
         } catch (SQLException e) {
@@ -171,11 +166,7 @@ public class SQLDataAccess implements DataAccess {
             conn.setAutoCommit(false);
             String statement = "INSERT INTO authData (authToken, username, authDataJson) VALUES (?, ?, ?)";
             AuthData authData = new AuthData(authToken, username);
-            PreparedStatement preparedStatement = conn.prepareStatement(statement);
-            preparedStatement.setString(1, authToken);
-            preparedStatement.setString(2, username);
-            preparedStatement.setString(3, gson.toJson(authData));
-            preparedStatement.executeUpdate();
+            runUpdate(conn, statement, authToken, username, gson.toJson(authData));
             conn.commit();
             return authData;
         } catch (SQLException e) {
@@ -205,9 +196,7 @@ public class SQLDataAccess implements DataAccess {
             conn.setAutoCommit(false);
 
             String statement = "DELETE FROM authData WHERE authToken=?";
-            PreparedStatement preparedStatement = conn.prepareStatement(statement);
-            preparedStatement.setString(1, authData.getAuthToken());
-            preparedStatement.executeUpdate();
+            runUpdate(conn, statement, authData.getAuthToken());
 
             conn.commit();
             return true;
@@ -271,23 +260,13 @@ public class SQLDataAccess implements DataAccess {
             GameData gameData = new GameData(null, null, gameName);
             String statement = 
                 "INSERT INTO gameData (gameName, whiteUsername, blackUsername, chessGameJson, gameDataJson) VALUES (?, ?, ?, ?, ?)";
-            PreparedStatement preparedStatement = conn.prepareStatement(statement, RETURN_GENERATED_KEYS);
-            preparedStatement.setString(1, gameName);
-            preparedStatement.setString(2, null);
-            preparedStatement.setString(3, null);
-            preparedStatement.setString(4, gson.toJson(gameData.getChessGame()));
-            preparedStatement.setString(5, gson.toJson(gameData));
-            preparedStatement.executeUpdate();
-            ResultSet result = preparedStatement.getGeneratedKeys();
+            ResultSet result = runUpdate(conn, statement, gameName, "", "", gson.toJson(gameData.getChessGame()), gson.toJson(gameData));
             result.next();
             int gameId = result.getInt(1);
             gameData.setGameID(Integer.toString(gameId));
 
             statement = "UPDATE gameData SET gameDataJson=? WHERE gameID=?";
-            preparedStatement = conn.prepareStatement(statement);
-            preparedStatement.setString(1, gson.toJson(gameData));
-            preparedStatement.setInt(2, gameId);
-            preparedStatement.executeUpdate();
+            runUpdate(conn, statement, gson.toJson(gameData), gameId);
 
             conn.commit();
             return gameData;
@@ -326,11 +305,7 @@ public class SQLDataAccess implements DataAccess {
                     break;
             }
             if(statement != "") {
-                PreparedStatement preparedStatement = conn.prepareStatement(statement);
-                preparedStatement.setString(1, userData.getUsername());
-                preparedStatement.setString(2, gson.toJson(gameData));
-                preparedStatement.setInt(3, Integer.parseInt(gameData.getGameID()));
-                preparedStatement.executeUpdate();
+                runUpdate(conn, statement, userData.getUsername(), gson.toJson(gameData), Integer.parseInt(gameData.getGameID()));
             }
 
             conn.commit();
@@ -357,8 +332,7 @@ public class SQLDataAccess implements DataAccess {
             conn.setAutoCommit(false);
 
             String statement = "TRUNCATE TABLE gameData"; // this should also reset the auto increment
-            PreparedStatement preparedStatement = conn.prepareStatement(statement);
-            preparedStatement.executeUpdate();
+            runUpdate(conn, statement);
 
             conn.commit();
             return true;
@@ -384,8 +358,7 @@ public class SQLDataAccess implements DataAccess {
             conn.setAutoCommit(false);
 
             String statement = "TRUNCATE TABLE authData";
-            PreparedStatement preparedStatement = conn.prepareStatement(statement);
-            preparedStatement.executeUpdate();
+            runUpdate(conn, statement);
 
             conn.commit();
             return true;
@@ -411,8 +384,7 @@ public class SQLDataAccess implements DataAccess {
             conn.setAutoCommit(false);
 
             String statement = "TRUNCATE TABLE userData";
-            PreparedStatement preparedStatement = conn.prepareStatement(statement);
-            preparedStatement.executeUpdate();
+            runUpdate(conn, statement);
 
             conn.commit();
             return true;
@@ -430,4 +402,15 @@ public class SQLDataAccess implements DataAccess {
         }
     }
 
+    private ResultSet runUpdate(Connection conn, String statement, Object... params) throws SQLException{
+        PreparedStatement preparedStatement = conn.prepareStatement(statement, RETURN_GENERATED_KEYS);
+
+        for(int i = 0; i < params.length; i++) {
+            Object param = params[i];
+            if(param instanceof String s) { preparedStatement.setString(i+1, s); }
+            else if(param instanceof Integer n) { preparedStatement.setInt(i+1, n); }
+        }
+        preparedStatement.executeUpdate();
+        return preparedStatement.getGeneratedKeys();
+    }
 }
