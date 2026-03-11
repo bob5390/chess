@@ -92,7 +92,7 @@ public class ChessService {
         if(authData != null) {
             if(req.getGameName() != null && req.getGameName() != "") {
                 GameData gameData = dbAccess.createGame(req.getGameName());
-                return new CreateGameResult(gameData.getGameID());
+                return new CreateGameResult(gameData.getGameID(), gameData.getChessGame());
             } else {
                 throw new BadRequestResponse("no game name provided");
             }

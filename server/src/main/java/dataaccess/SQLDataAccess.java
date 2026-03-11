@@ -132,9 +132,11 @@ public class SQLDataAccess implements DataAccess {
             PreparedStatement preparedStatement = conn.prepareStatement(statement);
             preparedStatement.setString(1, authToken);
             ResultSet result = preparedStatement.executeQuery();
-            result.next();
-            AuthData toReturn = gson.fromJson(result.getString("authDataJson"), AuthData.class);
-            return toReturn;
+            if(result.next()) {
+                AuthData toReturn = gson.fromJson(result.getString("authDataJson"), AuthData.class);
+                return toReturn;
+            }
+            return null;
         } catch (SQLException e) {
             throw new InternalServerErrorResponse("Failed to close connection or execute query: " + e.getMessage());
         } catch (DataAccessException e) {
@@ -149,9 +151,11 @@ public class SQLDataAccess implements DataAccess {
             PreparedStatement preparedStatement = conn.prepareStatement(statement);
             preparedStatement.setString(1, userData.getUsername());
             ResultSet result = preparedStatement.executeQuery();
-            result.next();
-            AuthData toReturn = gson.fromJson(result.getString("authDataJson"), AuthData.class);
-            return toReturn;
+            if(result.next()) {
+                AuthData toReturn = gson.fromJson(result.getString("authDataJson"), AuthData.class);
+                return toReturn;
+            }
+            return null;
         } catch (SQLException e) {
             throw new InternalServerErrorResponse("Failed to close connection or execute query: " + e.getMessage());
         } catch (DataAccessException e) {
@@ -246,8 +250,10 @@ public class SQLDataAccess implements DataAccess {
             PreparedStatement preparedStatement = conn.prepareStatement(statement);
             preparedStatement.setString(1, gameID);
             ResultSet result = preparedStatement.executeQuery();
-            result.next();
-            return gson.fromJson(result.getString("gameDataJson"), GameData.class);
+            if(result.next()) {
+                return gson.fromJson(result.getString("gameDataJson"), GameData.class);
+            }
+            return null;
         } catch (SQLException e) {
             throw new InternalServerErrorResponse("Failed to close connection or execute query: " + e.getMessage());
         } catch (DataAccessException e) {
@@ -350,7 +356,7 @@ public class SQLDataAccess implements DataAccess {
             conn = c;
             conn.setAutoCommit(false);
 
-            String statement = "TRUNCATE TABLE gameData";
+            String statement = "TRUNCATE TABLE gameData"; // this should also reset the auto increment
             PreparedStatement preparedStatement = conn.prepareStatement(statement);
             preparedStatement.executeUpdate();
 

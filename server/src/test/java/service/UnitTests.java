@@ -91,7 +91,7 @@ public class UnitTests {
     public void testCreateGame() {
         RegisterResult registration = service.register(new RegisterRequest("username", "password", "email"));
         CreateGameResult result = service.createGame(new CreateGameRequest(registration.getAuthToken(), "Game 1"));
-        CreateGameResult expected = new CreateGameResult("1");
+        CreateGameResult expected = new CreateGameResult("1", result.getChessGame());
 
         assert expected.equals(result);
     }

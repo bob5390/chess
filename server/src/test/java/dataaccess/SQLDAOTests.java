@@ -7,7 +7,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 import model.GameData;
@@ -29,11 +28,12 @@ import service.results.LogoutResult;
 import service.results.RegisterResult;
 
 public class SQLDAOTests {
-    Server server = new Server();
-    ChessService service = new ChessService(new SQLDataAccess());
+    static Server server;
+    static ChessService service = new ChessService(new SQLDataAccess());
 
     @BeforeAll
-    public void startServer() {
+    public static void startServer() {
+        server = new Server();
         server.run(0);
     }
 
@@ -81,10 +81,10 @@ public class SQLDAOTests {
     public void testLoginFail() {
         service.register(new RegisterRequest("username", "password", "email"));
         try {
-            service.login(new LoginRequest("username", "pw"));
+            service.login(new LoginRequest("fakeUsername", "pw"));
         } catch (UnauthorizedResponse e) {
             assert e != null;
-            assert e.getMessage().equals("unauthorized");
+            assert e.getMessage().equals("username not found");
         }
     }
 
@@ -111,17 +111,17 @@ public class SQLDAOTests {
     public void testCreateGamePass() {
         RegisterResult registration = service.register(new RegisterRequest("username", "password", "email"));
         CreateGameResult result = service.createGame(new CreateGameRequest(registration.getAuthToken(), "Game 1"));
-        CreateGameResult expected = new CreateGameResult("1");
+        CreateGameResult expected = new CreateGameResult("1", result.getChessGame());
 
         assert expected.equals(result);
     }
     @Test
     public void testCreateGameFail() {
-        RegisterResult registration = service.register(new RegisterRequest("username", "password", "email"));
+        service.register(new RegisterRequest("username", "password", "email"));
         try {
-            service.createGame(new CreateGameRequest(registration.getAuthToken(), ""));
-        } catch (BadRequestResponse e) {
-            assert e.getMessage().equals("no game name provided");
+            service.createGame(new CreateGameRequest("fakeToken", "testGame"));
+        } catch (UnauthorizedResponse e) {
+            assert e.getMessage().equals("unauthorized");
         }
     }
 
