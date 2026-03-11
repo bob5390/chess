@@ -109,8 +109,8 @@ public class ChessService {
             if(gameData != null) {
                 if(req.getTeamColor() != null && (req.getTeamColor().equals("WHITE") || req.getTeamColor().equals("BLACK"))) {
                     if(checkTeamColor(req.getTeamColor(), gameData)) {
-                        gameData = dbAccess.updateGame(gameData, userData, req.getTeamColor());
-                        return new JoinGameResult();
+                        gameData = dbAccess.joinGame(gameData, userData, req.getTeamColor());
+                        return new JoinGameResult(gameData);
                     } else {
                         throw new ForbiddenResponse("cannot join, game already taken");
                     }

@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.UUID;
 
+import io.javalin.http.HttpResponseException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -76,12 +77,11 @@ public class MemoryDataAccess implements DataAccess {
     @Override
     public GameData createGame(String gameName) {
         GameData newGame = new GameData(Integer.toString(gameId++), null, null, gameName);
-        gameDataMap.put(newGame.getGameID(), newGame);
-        return newGame;
+        return updateGame(newGame);
     }
 
     @Override
-    public GameData updateGame(GameData gameData, UserData userData, String teamColor) {
+    public GameData joinGame(GameData gameData, UserData userData, String teamColor) {
         gameDataMap.remove(gameData.getGameID());
         switch (teamColor) {
             case "BLACK":
@@ -93,6 +93,11 @@ public class MemoryDataAccess implements DataAccess {
             default:
                 break;
         }
+        return updateGame(gameData);
+    }
+
+    @Override
+    public GameData updateGame(GameData gameData) throws HttpResponseException {
         gameDataMap.put(gameData.getGameID(), gameData);
         return gameData;
     }

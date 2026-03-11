@@ -18,7 +18,8 @@ public interface DataAccess {
     public Collection<GameData> listGames() throws HttpResponseException;
     public GameData getGame(String gameID) throws HttpResponseException;
     public GameData createGame(String gameName) throws HttpResponseException;
-    public GameData updateGame(GameData gameData, UserData userData, String teamColor) throws HttpResponseException;
+    public GameData joinGame(GameData gameData, UserData userData, String teamColor) throws HttpResponseException;
+    public GameData updateGame(GameData gameData) throws HttpResponseException;
 
     public boolean clearGames() throws HttpResponseException;
     public boolean clearAuths() throws HttpResponseException;

@@ -106,7 +106,7 @@ public class SQLDataAccess implements DataAccess {
             runUpdate(conn, statement, userData.getUsername(), userData.getPassword(), userData.getEmail(), userDataJson);
             conn.commit();
             return authToken;
-        } catch (SQLException e) {
+        } catch (SQLException | DataAccessException e) {
             try {
                 if(conn != null && !conn.isClosed()) {
                     conn.rollback();
@@ -114,9 +114,7 @@ public class SQLDataAccess implements DataAccess {
             } catch (SQLException e1) {
                 throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
             }
-            throw new InternalServerErrorResponse("Failed to close connection to database or insert user data: " + e.getMessage());
-        } catch (DataAccessException e) {
-            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
         }
     }
 
@@ -132,10 +130,8 @@ public class SQLDataAccess implements DataAccess {
                 return toReturn;
             }
             return null;
-        } catch (SQLException e) {
-            throw new InternalServerErrorResponse("Failed to close connection or execute query: " + e.getMessage());
-        } catch (DataAccessException e) {
-            throw new InternalServerErrorResponse("Failed to connect to database: " + e.getMessage());
+        } catch (SQLException | DataAccessException e) {
+            throw new InternalServerErrorResponse("Connection or query error: " + e.getMessage());
         }
     }
 
@@ -151,10 +147,8 @@ public class SQLDataAccess implements DataAccess {
                 return toReturn;
             }
             return null;
-        } catch (SQLException e) {
-            throw new InternalServerErrorResponse("Failed to close connection or execute query: " + e.getMessage());
-        } catch (DataAccessException e) {
-            throw new InternalServerErrorResponse("Failed to connect to database: " + e.getMessage());
+        } catch (SQLException | DataAccessException e) {
+            throw new InternalServerErrorResponse("Connection or query error: " + e.getMessage());
         }
     }
 
@@ -169,7 +163,7 @@ public class SQLDataAccess implements DataAccess {
             runUpdate(conn, statement, authToken, username, gson.toJson(authData));
             conn.commit();
             return authData;
-        } catch (SQLException e) {
+        } catch (SQLException | DataAccessException e) {
             try {
                 if(conn != null && !conn.isClosed()) {
                     conn.rollback();
@@ -177,9 +171,7 @@ public class SQLDataAccess implements DataAccess {
             } catch (SQLException e1) {
                 throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
             }
-            throw new InternalServerErrorResponse("Failed to close connection to database or insert auth data: " + e.getMessage());
-        } catch (DataAccessException e) {
-            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
         }
     }
 
@@ -200,7 +192,7 @@ public class SQLDataAccess implements DataAccess {
 
             conn.commit();
             return true;
-        } catch (SQLException e) {
+        } catch (SQLException | DataAccessException e) {
             try {
                 if(conn != null && !conn.isClosed()) {
                     conn.rollback();
@@ -208,9 +200,7 @@ public class SQLDataAccess implements DataAccess {
             } catch (SQLException e1) {
                 throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
             }
-            throw new InternalServerErrorResponse("Failed to close connection to database or insert auth data: " + e.getMessage());
-        } catch (DataAccessException e) {
-            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
         }
     }
 
@@ -225,10 +215,8 @@ public class SQLDataAccess implements DataAccess {
                 toReturn.add(gson.fromJson(result.getString("gameDataJson"), GameData.class));
             }
             return toReturn;
-        } catch (SQLException e) {
-            throw new InternalServerErrorResponse("Failed to close connection or execute query: " + e.getMessage());
-        } catch (DataAccessException e) {
-            throw new InternalServerErrorResponse("Failed to connect to database: " + e.getMessage());
+        } catch (SQLException | DataAccessException e) {
+            throw new InternalServerErrorResponse("Connection or query error: " + e.getMessage());
         }
     }
 
@@ -243,10 +231,8 @@ public class SQLDataAccess implements DataAccess {
                 return gson.fromJson(result.getString("gameDataJson"), GameData.class);
             }
             return null;
-        } catch (SQLException e) {
-            throw new InternalServerErrorResponse("Failed to close connection or execute query: " + e.getMessage());
-        } catch (DataAccessException e) {
-            throw new InternalServerErrorResponse("Failed to connect to database: " + e.getMessage());
+        } catch (SQLException | DataAccessException e) {
+            throw new InternalServerErrorResponse("Connection or query error: " + e.getMessage());
         }
     }
 
@@ -270,7 +256,7 @@ public class SQLDataAccess implements DataAccess {
 
             conn.commit();
             return gameData;
-        } catch (SQLException e) {
+        } catch (SQLException | DataAccessException e) {
             try {
                 if(conn != null && !conn.isClosed()) {
                     conn.rollback();
@@ -278,14 +264,12 @@ public class SQLDataAccess implements DataAccess {
             } catch (SQLException e1) {
                 throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
             }
-            throw new InternalServerErrorResponse("Failed to close connection to database or insert game data: " + e.getMessage());
-        } catch (DataAccessException e) {
-            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
         }
     }
 
     @Override
-    public GameData updateGame(GameData gameData, UserData userData, String teamColor) throws HttpResponseException {
+    public GameData joinGame(GameData gameData, UserData userData, String teamColor) throws HttpResponseException {
         Connection conn = null;
         try (Connection c = DatabaseManager.getConnection()) {
             conn = c;
@@ -310,7 +294,7 @@ public class SQLDataAccess implements DataAccess {
 
             conn.commit();
             return gameData;
-        } catch (SQLException e) {
+        } catch (SQLException | DataAccessException e) {
             try {
                 if(conn != null && !conn.isClosed()) {
                     conn.rollback();
@@ -318,9 +302,24 @@ public class SQLDataAccess implements DataAccess {
             } catch (SQLException e1) {
                 throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
             }
-            throw new InternalServerErrorResponse("Failed to close connection to database or update game data: " + e.getMessage());
-        } catch (DataAccessException e) {
-            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public GameData updateGame(GameData gameData) throws HttpResponseException {
+        Connection conn = null;
+        try (Connection c = DatabaseManager.getConnection()) {
+            conn = c;
+            conn.setAutoCommit(false);
+
+            String statement = "UPDATE gameData SET chessGameJson=?, gameDataJson=? WHERE gameID=?";
+            runUpdate(conn, statement, gson.toJson(gameData.getChessGame()), gson.toJson(gameData), Integer.parseInt(gameData.getGameID()));
+            
+            conn.commit();
+            return gameData;
+        } catch (SQLException | DataAccessException e) {
+            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
         }
     }
 
@@ -336,7 +335,7 @@ public class SQLDataAccess implements DataAccess {
 
             conn.commit();
             return true;
-        } catch (SQLException e) {
+        } catch (SQLException | DataAccessException e) {
             try {
                 if(conn != null && !conn.isClosed()) {
                     conn.rollback();
@@ -344,9 +343,7 @@ public class SQLDataAccess implements DataAccess {
             } catch (SQLException e1) {
                 throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
             }
-            throw new InternalServerErrorResponse("Failed to close connection to database or insert auth data: " + e.getMessage());
-        } catch (DataAccessException e) {
-            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
         }
     }
 
@@ -362,7 +359,7 @@ public class SQLDataAccess implements DataAccess {
 
             conn.commit();
             return true;
-        } catch (SQLException e) {
+        } catch (SQLException | DataAccessException e) {
             try {
                 if(conn != null && !conn.isClosed()) {
                     conn.rollback();
@@ -370,9 +367,7 @@ public class SQLDataAccess implements DataAccess {
             } catch (SQLException e1) {
                 throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
             }
-            throw new InternalServerErrorResponse("Failed to close connection to database or insert auth data: " + e.getMessage());
-        } catch (DataAccessException e) {
-            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
         }
     }
 
@@ -388,7 +383,7 @@ public class SQLDataAccess implements DataAccess {
 
             conn.commit();
             return true;
-        } catch (SQLException e) {
+        } catch (SQLException | DataAccessException e) {
             try {
                 if(conn != null && !conn.isClosed()) {
                     conn.rollback();
@@ -396,9 +391,7 @@ public class SQLDataAccess implements DataAccess {
             } catch (SQLException e1) {
                 throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
             }
-            throw new InternalServerErrorResponse("Failed to close connection to database or insert auth data: " + e.getMessage());
-        } catch (DataAccessException e) {
-            throw new InternalServerErrorResponse("Failed connecting to database: " + e.getMessage());
+            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
         }
     }
 

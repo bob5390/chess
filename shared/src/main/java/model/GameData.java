@@ -31,4 +31,15 @@ public class GameData {
     public String getGameName() { return gameName; }
 
     public ChessGame getChessGame() { return chessGame; }
+
+    @Override
+    public boolean equals(Object obj) {
+        GameData toTest = (GameData)obj;
+        return toTest != null 
+            && this.gameID.equals(toTest.getGameID())
+            && ((this.blackUsername == null && toTest.getBlackUsername() == null) || this.blackUsername.equals(toTest.getBlackUsername()))
+            && ((this.whiteUsername == null && toTest.getWhiteUsername() == null) || this.whiteUsername.equals(toTest.getWhiteUsername()))
+            && this.gameName.equals(toTest.getGameName())
+            && this.chessGame.equals(toTest.getChessGame());
+    }
 }
