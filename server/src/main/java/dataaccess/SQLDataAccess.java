@@ -23,6 +23,7 @@ public class SQLDataAccess implements DataAccess {
 
     public SQLDataAccess() {
         gson = new Gson();
+        configureDatabase();
     }
 
     private final String[] createStatements = {
@@ -46,10 +47,10 @@ public class SQLDataAccess implements DataAccess {
         // create game data table
         """
         CREATE TABLE IF NOT EXISTS gameData(
-            `gameID` int NOT NULL AUTO_INCREMENT,
+            `gameID` int NOT NULL PRIMARY KEY AUTO_INCREMENT,
             `gameName` varchar(256) NOT NULL,
-            `whiteUsername` varchar(256) NOT NULL,
-            `blackUsername` varchar(256) NOT NULL,
+            `whiteUsername` varchar(256),
+            `blackUsername` varchar(256),
             `chessGameJson` TEXT NOT NULL,
             `gameDataJson` TEXT
         )
@@ -77,10 +78,13 @@ public class SQLDataAccess implements DataAccess {
         try (Connection conn = DatabaseManager.getConnection()) {
             String statement = "SELECT userDataJson FROM userData WHERE username=?";
             PreparedStatement preparedStatement = conn.prepareStatement(statement);
+            preparedStatement.setString(1, username);
             ResultSet result = preparedStatement.executeQuery();
-            result.next(); // get first entry
-            UserData toReturn = gson.fromJson(result.getString("userDataJson"), UserData.class);
-            return toReturn;
+            if(result.next()) { // get first entry
+                UserData toReturn = gson.fromJson(result.getString("userDataJson"), UserData.class);
+                return toReturn;
+            } 
+            return null;
         } catch (DataAccessException e) {
             throw new InternalServerErrorResponse("Failed to connect to database: " + e.getMessage());
         } catch (SQLException e) {
@@ -273,7 +277,7 @@ public class SQLDataAccess implements DataAccess {
             int gameId = result.getInt(1);
             gameData.setGameID(Integer.toString(gameId));
 
-            statement = "UPDATE gameData SET gameDataJson=? WHERE id=?";
+            statement = "UPDATE gameData SET gameDataJson=? WHERE gameID=?";
             preparedStatement = conn.prepareStatement(statement);
             preparedStatement.setString(1, gson.toJson(gameData));
             preparedStatement.setInt(2, gameId);
@@ -305,11 +309,11 @@ public class SQLDataAccess implements DataAccess {
             String statement = "";
             switch (teamColor) {
                 case "WHITE":
-                    statement = "UPDATE gameData SET whiteUsername=? WHERE id=?";
+                    statement = "UPDATE gameData SET whiteUsername=?, gameDataJson=? WHERE gameID=?";
                     gameData.setWhiteUsername(userData.getUsername());
                     break;
                 case "BLACK":
-                    statement = "UPDATE gameData SET blackUsername=? WHERE id=?";
+                    statement = "UPDATE gameData SET blackUsername=?, gameDataJson=? WHERE gameID=?";
                     gameData.setBlackUsername(userData.getUsername());
                     break;
                 default:
@@ -318,7 +322,8 @@ public class SQLDataAccess implements DataAccess {
             if(statement != "") {
                 PreparedStatement preparedStatement = conn.prepareStatement(statement);
                 preparedStatement.setString(1, userData.getUsername());
-                preparedStatement.setInt(2, Integer.parseInt(gameData.getGameID()));
+                preparedStatement.setString(2, gson.toJson(gameData));
+                preparedStatement.setInt(3, Integer.parseInt(gameData.getGameID()));
                 preparedStatement.executeUpdate();
             }
 

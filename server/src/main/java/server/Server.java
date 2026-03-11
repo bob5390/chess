@@ -5,6 +5,7 @@ import java.util.Map;
 import com.google.gson.Gson;
 
 import dataaccess.MemoryDataAccess;
+import dataaccess.SQLDataAccess;
 import io.javalin.*;
 import io.javalin.http.Context;
 import io.javalin.http.HttpResponseException;
@@ -30,7 +31,7 @@ public class Server {
     private final Javalin javalin;
 
     public Server() {
-        service = new ChessService(new MemoryDataAccess());
+        service = new ChessService(new SQLDataAccess());
         gson = new Gson();
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 
