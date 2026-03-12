@@ -11,4 +11,10 @@ public class AuthData {
 
     public String getAuthToken() { return authToken; }
     public String getUsername() { return username; }
+
+    @Override
+    public boolean equals(Object obj) {
+        AuthData toTest = (AuthData) obj;
+        return toTest != null && this.authToken.equals(toTest.getAuthToken()) && this.username.equals(toTest.getUsername());
+    }
 }

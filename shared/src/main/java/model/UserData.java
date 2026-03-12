@@ -17,4 +17,13 @@ public class UserData {
     public String getUsername() { return username; }
     public String getPassword() { return password; }
     public String getEmail() { return email; }
+
+    @Override
+    public boolean equals(Object obj) {
+        UserData toTest = (UserData) obj;
+        return toTest != null 
+            && this.username.equals(toTest.getUsername())
+            && this.password.equals(toTest.getPassword())
+            && ((this.email == null && toTest.getEmail() == null) || this.email.equals(toTest.getEmail()));
+    }
 }

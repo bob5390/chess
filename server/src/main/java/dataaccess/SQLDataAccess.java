@@ -57,7 +57,7 @@ public class SQLDataAccess implements DataAccess {
         """
     };
 
-    public void configureDatabase() throws HttpResponseException {
+    private void configureDatabase() throws HttpResponseException {
         try {
             DatabaseManager.createDatabase();
             try (Connection conn = DatabaseManager.getConnection()) {
@@ -286,7 +286,7 @@ public class SQLDataAccess implements DataAccess {
                     gameData.setBlackUsername(userData.getUsername());
                     break;
                 default:
-                    break;
+                    throw new InternalServerErrorResponse("Invalid team color");
             }
             if(statement != "") {
                 runUpdate(conn, statement, userData.getUsername(), gson.toJson(gameData), Integer.parseInt(gameData.getGameID()));

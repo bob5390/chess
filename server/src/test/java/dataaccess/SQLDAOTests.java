@@ -1,265 +1,274 @@
 package dataaccess;
 
+import java.util.Collection;
+
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.javalin.http.BadRequestResponse;
-import io.javalin.http.ForbiddenResponse;
-import io.javalin.http.UnauthorizedResponse;
+import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPosition;
+import chess.InvalidMoveException;
+import io.javalin.http.HttpResponseException;
+import model.AuthData;
 import model.GameData;
-import server.Server;
-import service.ChessService;
-import service.requests.ClearRequest;
-import service.requests.CreateGameRequest;
-import service.requests.JoinGameRequest;
-import service.requests.ListGamesRequest;
-import service.requests.LoginRequest;
-import service.requests.LogoutRequest;
-import service.requests.RegisterRequest;
-import service.results.ClearResult;
-import service.results.CreateGameResult;
-import service.results.JoinGameResult;
-import service.results.ListGamesResult;
-import service.results.LoginResult;
-import service.results.LogoutResult;
-import service.results.RegisterResult;
+import model.UserData;
 
 public class SQLDAOTests {
-    static Server server;
-    static ChessService service = new ChessService(new SQLDataAccess());
+    static SQLDataAccess dataAccess = new SQLDataAccess();
 
-    @BeforeAll
-    public static void startServer() {
-        server = new Server();
-        server.run(0);
-    }
-
-    @BeforeEach
-    public void setupForTest() {
-        service.clearDatabases(new ClearRequest());
-
-        RegisterResult reg1 = service.register(new RegisterRequest("user1", "password", "email"));
-        RegisterResult reg2 = service.register(new RegisterRequest("user2", "password", "email2"));
-        LoginResult login1 = service.login(new LoginRequest(reg1.getUsername(), "password"));
-        service.createGame(new CreateGameRequest(login1.getAuthToken(), "game 1"));
-        service.joinGame(new JoinGameRequest(login1.getAuthToken(), "WHITE", "1"));
-        LoginResult login2 = service.login(new LoginRequest(reg2.getUsername(), "password"));
-        service.joinGame(new JoinGameRequest(login2.getAuthToken(), "BLACK", "1"));
+    private void cleanDatabase() {
+        dataAccess.clearAuths();
+        dataAccess.clearGames();
+        dataAccess.clearUsers();
     }
 
     @AfterEach
-    public void stopServer() {
-        server.stop();
+    public void clearDatabase() {
+        cleanDatabase();
     }
 
     @Test
-    public void testRegisterPass() {
-        RegisterResult result = service.register(new RegisterRequest("username", "password", "email"));
-        RegisterResult expected = new RegisterResult(result.getAuthToken(), "username");
+    public void testGetUserPass() {
+        UserData expected = new UserData("username", "password", "email");
+        dataAccess.createUser(expected);
+        UserData result = dataAccess.getUser("username");
 
-        assert result.getAuthToken() != null;
         assert expected.equals(result);
+    }
+    @Test
+    public void testGetUserFail() {
+        try {
+            dataAccess.getUser("thisUserDoesNotExist");
+        } catch (HttpResponseException e) {
+            assert e != null;
+            assert e.getStatus() == 500;
+        }
+    }
 
-        RegisterResult result2 = service.register(new RegisterRequest("user3", "password", "email"));
-        RegisterResult expected2 = new RegisterResult(result2.getAuthToken(), "user3");
-
-        assert result2.getAuthToken() != null;
-        assert expected2.equals(result2);
+    @Test
+    public void testCreateUserPass() {
+        UserData toCreate = new UserData("username", "password", "email");
+        String result = dataAccess.createUser(toCreate);
+        assert result != null;
     }
     @Test
     public void testRegisterFail() {
-        service.register(new RegisterRequest("username", "password", "email"));
-        stopServer();
-        startServer();
+        UserData toCreate = new UserData("user1", "password", "email");
+        String result1 = dataAccess.createUser(toCreate);
+        assert result1 != null;
         try {
-            service.register(new RegisterRequest("username", "password", "email"));
-        } catch (ForbiddenResponse e) {
+            dataAccess.createUser(toCreate);
+        } catch (HttpResponseException e) {
             assert e != null;
-            assert e.getMessage().equals("username already taken");
+            assert e.getStatus() == 500;
         }
     }
 
     @Test
-    public void testLoginPass() {
-        service.register(new RegisterRequest("username", "password", "email"));
-        LoginResult result = service.login(new LoginRequest("username", "password"));
-        LoginResult expected = new LoginResult("username", result.getAuthToken());
-
-        assert result.getAuthToken() != null;
+    public void testGetAuthByAuthTokenPass() {
+        dataAccess.createUser(new UserData("user", "password", "email"));
+        AuthData expected = dataAccess.createAuth("user");
+        AuthData result = dataAccess.getAuth(expected.getAuthToken());
         assert expected.equals(result);
-
-        LoginResult result2 = service.login(new LoginRequest("user1", "password"));
-        LoginResult expected2 = new LoginResult("user1", result2.getAuthToken());
-
-        assert result2.getAuthToken() != null;
-        assert expected2.equals(result2);
     }
     @Test
-    public void testLoginFail() {
-        service.register(new RegisterRequest("username", "password", "email"));
-        try {
-            service.login(new LoginRequest("fakeUsername", "pw"));
-        } catch (UnauthorizedResponse e) {
-            assert e != null;
-            assert e.getMessage().equals("username not found");
-        }
+    public void testGetAuthByAuthTokenFail() {
+        dataAccess.createUser(new UserData("user", "password", "email"));
+        dataAccess.createAuth("user");
+        AuthData result = dataAccess.getAuth("badToken");
+        assert result == null;
     }
-
     @Test
-    public void testLogoutPass() {
-        RegisterResult registration = service.register(new RegisterRequest("username", "password", "email"));
-        LogoutResult result = service.logout(new LogoutRequest(registration.getAuthToken()));
-        LogoutResult expected = new LogoutResult(true);
-
+    public void testGetAuthByUserDataPass() {
+        UserData user = new UserData("user", "password", "email");
+        dataAccess.createUser(user);
+        AuthData expected = dataAccess.createAuth("user");
+        AuthData result = dataAccess.getAuth(user);
         assert expected.equals(result);
-
-        LoginResult login = service.login(new LoginRequest("user1", "password"));
-
-        assert login.getAuthToken() != null;
-
-        LogoutResult result2 = service.logout(new LogoutRequest(login.getAuthToken()));
-        LogoutResult expected2 = new LogoutResult(true);
-
-        assert expected2.equals(result2);
     }
     @Test
-    public void testLogoutFail() {
-        service.register(new RegisterRequest("username", "password", "email"));
-        try {
-            service.logout(new LogoutRequest("test"));
-        } catch (UnauthorizedResponse e) {
-            assert e != null;
-            assert e.getMessage().equals("unauthorized");
-        }
+    public void testGetAuthByUserDataFail() {
+        dataAccess.createUser(new UserData("user", "password", "email"));
+        dataAccess.createAuth("user");
+        AuthData result = dataAccess.getAuth(new UserData("badUser", "pass", "email"));
+        assert result == null;
+    }
 
-        LoginResult login = service.login(new LoginRequest("user1", "password"));
-
-        assert login.getAuthToken() != null;
-
-        LogoutResult result = service.logout(new LogoutRequest(login.getAuthToken()));
-        LogoutResult expected = new LogoutResult(true);
-
+    @Test
+    public void testCreateAuthGivenTokenPass() {
+        String token = dataAccess.createUser(new UserData("user", "password", "email"));
+        AuthData result = dataAccess.createAuth(token, "user");
+        AuthData expected = new AuthData(token, "user");
         assert expected.equals(result);
-
-        try {
-            service.logout(new LogoutRequest(login.getAuthToken()));
-        } catch (UnauthorizedResponse e) {
-            assert e != null;
-            assert e.getMessage().equals("unauthorized");
-        }
     }
-
     @Test
-    public void testCreateGamePass() {
-        RegisterResult registration = service.register(new RegisterRequest("username", "password", "email"));
-        CreateGameResult result = service.createGame(new CreateGameRequest(registration.getAuthToken(), "Game 1"));
-        CreateGameResult expected = new CreateGameResult("2", result.getChessGame());
-
+    public void testCreateAuthGivenTokenMultiple() {
+        String token = dataAccess.createUser(new UserData("user", "password", "email"));
+        AuthData result = dataAccess.createAuth(token, "user");
+        AuthData expected = new AuthData(token, "user");
         assert expected.equals(result);
-
-        LoginResult login = service.login(new LoginRequest("user1", "password"));
-
-        assert login.getAuthToken() != null;
-
-        CreateGameResult result2 = service.createGame(new CreateGameRequest(login.getAuthToken(), "game 2"));
-        CreateGameResult expected2 = new CreateGameResult("3", result2.getChessGame());
-
-        assert expected2.equals(result2);
+        AuthData result2 = dataAccess.createAuth(token, "user");
+        assert expected.equals(result2);
     }
     @Test
-    public void testCreateGameFail() {
-        service.register(new RegisterRequest("username", "password", "email"));
-        try {
-            service.createGame(new CreateGameRequest("fakeToken", "testGame"));
-        } catch (UnauthorizedResponse e) {
-            assert e.getMessage().equals("unauthorized");
-        }
+    public void testCreateAuthUsernameOnlyPass() {
+        AuthData result = dataAccess.createAuth("user");
+        AuthData expected = new AuthData(result.getAuthToken(), "user");
+        assert expected.equals(result);
+    }
+    @Test
+    public void testCreateAuthUsernameOnlyMultiple() {
+        AuthData result = dataAccess.createAuth("user");
+        AuthData expected = new AuthData(result.getAuthToken(), "user");
+        assert expected.equals(result);
+        AuthData result2 = dataAccess.createAuth("user");
+        assert result2.getUsername().equals(expected.getUsername());
+        assert !result2.getAuthToken().equals(expected.getAuthToken());
+    }
+
+    @Test
+    public void testDeleteAuthPass() {
+        AuthData toDelete = dataAccess.createAuth("user");
+        boolean result = dataAccess.deleteAuth(toDelete);
+        assert result;
+    }
+    @Test
+    public void testDeleteAuthNotInTable() {
+        boolean result = dataAccess.deleteAuth(new AuthData("token", "user"));
+        assert result;
     }
 
     @Test
     public void testListGamesPass() {
-        RegisterResult registration = service.register(new RegisterRequest("username", "password", "email"));
-        ListGamesResult result = service.listGames(new ListGamesRequest(registration.getAuthToken()));
-
-        assert result.getGameList().size() == 1;
-
-        service.createGame(new CreateGameRequest(registration.getAuthToken(), "another game"));
-        ListGamesResult result2 = service.listGames(new ListGamesRequest(registration.getAuthToken()));
-
-        assert result2.getGameList().size() == 2;
+        Collection<GameData> result = dataAccess.listGames();
+        assert result.size() == 0;
     }
     @Test
-    public void testListGamesFail() {
-        service.register(new RegisterRequest("username", "password", "email"));
-        try {
-            service.listGames(new ListGamesRequest("test"));
-        } catch (UnauthorizedResponse e) {
-            assert e != null;
-            assert e.getMessage().equals("unauthorized");
-        }
+    public void testListGamesManyGames() {
+        dataAccess.createGame("game 1");
+        dataAccess.createGame("game 2");
+        dataAccess.createGame("game 3");
+        Collection<GameData> result1 = dataAccess.listGames();
+        assert result1.size() == 3;
+        dataAccess.createGame("game 4");
+        Collection<GameData> result2 = dataAccess.listGames();
+        assert result2.size() == 4;
+    }
 
-        LoginResult login = service.login(new LoginRequest("user2", "password"));
+    @Test
+    public void testGetGamePass() {
+        GameData expected = dataAccess.createGame("game 1");
+        expected.setGameID("1");
+        GameData result = dataAccess.getGame("1");
+        assert expected.equals(result);
+    }
+    @Test
+    public void testGetGameFail() {
+        GameData result = dataAccess.getGame("1");
+        assert result == null;
+    }
 
-        assert login.getAuthToken() != null;
-
-        service.logout(new LogoutRequest(login.getAuthToken()));
-
-        try {
-            service.listGames(new ListGamesRequest(login.getAuthToken()));
-        } catch (UnauthorizedResponse e) {
-            assert e != null;
-            assert e.getMessage().equals("unauthorized");
-        }
+    @Test
+    public void testCreateGamePass() {
+        GameData result = dataAccess.createGame("Game 1");
+        GameData expected = new GameData("1", null, null, "Game 1");
+        assert expected.equals(result);
+    }
+    @Test
+    public void testCreateGameSameName() {
+        GameData result1 = dataAccess.createGame("Game");
+        GameData result2 = dataAccess.createGame("Game");
+        GameData expected1 = new GameData("1", null, null, "Game");
+        GameData expected2 = new GameData("2", null, null, "Game");
+        assert expected1.equals(result1);
+        assert expected2.equals(result2);
     }
 
     @Test
     public void testJoinGamePass() {
-        RegisterResult registration = service.register(new RegisterRequest("username", "password", "email"));
-        CreateGameResult createGame = service.createGame(new CreateGameRequest(registration.getAuthToken(), "Game 1"));
-        JoinGameResult result = service.joinGame(new JoinGameRequest(registration.getAuthToken(), "WHITE", "2"));
-        JoinGameResult expected = new JoinGameResult(new GameData(createGame.getGameID(), null, "username", "Game 1"));
-
-        assert result != null;
-        assert expected.equals(result);
-
-        JoinGameResult result2 = service.joinGame(new JoinGameRequest(registration.getAuthToken(), "BLACK", "2"));
-        JoinGameResult expected2 = new JoinGameResult(new GameData("2", "username", "username", "Game 1"));
-
-        assert result2 != null;
-        assert expected2.equals(result2);
+        GameData game = dataAccess.createGame("Game");
+        UserData user = new UserData("user", "password", "email");
+        dataAccess.createUser(user);
+        GameData result = dataAccess.joinGame(game, user, "WHITE");
+        game.setWhiteUsername(user.getUsername());
+        assert game.equals(result);
     }
     @Test
     public void testJoinGameFail() {
-        LoginResult login1 = service.login(new LoginRequest("user1", "password"));
-        LoginResult login2 = service.login(new LoginRequest("user2", "password"));
-        service.createGame(new CreateGameRequest(login1.getAuthToken(), "Game 1"));
+        GameData game = dataAccess.createGame("Game");
+        UserData user = new UserData("user", "password", "email");
+        dataAccess.createUser(user);
         try {
-            service.joinGame(new JoinGameRequest(login2.getAuthToken(), "WHITE", "1"));
-        } catch (ForbiddenResponse e) {
+            dataAccess.joinGame(game, user, "PURPLE");
+        } catch (HttpResponseException e) {
             assert e != null;
-            assert e.getMessage().equals("cannot join, game already taken");
-        }
-        try {
-            service.joinGame(new JoinGameRequest(login1.getAuthToken(), "PURPLE", "2"));
-        } catch (BadRequestResponse e) {
-            assert e != null;
-            assert e.getMessage().equals("invalid team color");
-        }
-        service.joinGame(new JoinGameRequest(login1.getAuthToken(), "WHITE", "2"));
-        try {
-            service.joinGame(new JoinGameRequest(login2.getAuthToken(), "WHITE", "2"));
-        } catch (ForbiddenResponse e) {
-            assert e != null;
-            assert e.getMessage().equals("cannot join, game already taken");
+            assert e.getStatus() == 500;
         }
     }
 
-    @Test
-    public void testClearDatabase() {
-        ClearResult result = service.clearDatabases(new ClearRequest());
+    private ChessGame makeMoves(ChessGame game, ChessMove... moves) {
+        for(ChessMove m : moves) {
+            try {
+                game.makeMove(m);
+            } catch (InvalidMoveException e) {}
+        }
+        return game;
+    }
 
-        assert result != null;
+    @Test
+    public void testUpdateGamePass() {
+        GameData gameData = dataAccess.createGame("Game");
+        ChessPosition startPosition = new ChessPosition(2, 4);
+        ChessPosition targetPosition = new ChessPosition(4, 4);
+        ChessMove toMake = new ChessMove(startPosition, targetPosition, null);
+        ChessGame game = gameData.getChessGame();
+        game = makeMoves(game, toMake);
+        GameData result = dataAccess.updateGame(gameData);
+        assert result.getChessGame().equals(game);
+    }
+    public void testUpdateGameMultipleMoves() {
+        GameData gameData = dataAccess.createGame("Game");
+        ChessPosition startPosition = new ChessPosition(2, 4);
+        ChessPosition targetPosition = new ChessPosition(4, 4);
+        ChessMove toMake = new ChessMove(startPosition, targetPosition, null);
+        startPosition = new ChessPosition(7, 4);
+        targetPosition = new ChessPosition(5, 4);
+        ChessMove toMake2 = new ChessMove(startPosition, targetPosition, null);
+        ChessGame game = gameData.getChessGame();
+        game = makeMoves(game, toMake, toMake2);
+        GameData result = dataAccess.updateGame(gameData);
+        assert result.getChessGame().equals(game);
+    }
+    
+    @Test
+    public void testClearGames() {
+        dataAccess.createGame("Game");
+        Collection<GameData> gameList = dataAccess.listGames();
+        assert gameList.size() == 1;
+        assert dataAccess.clearGames();
+        gameList = dataAccess.listGames();
+        assert gameList.size() == 0;
+    }
+
+    @Test
+    public void testClearAuths() {
+        AuthData auth = dataAccess.createAuth("user");
+        AuthData inTable = dataAccess.getAuth(auth.getAuthToken());
+        assert inTable.equals(auth);
+        assert dataAccess.clearAuths();
+        inTable = dataAccess.getAuth(auth.getAuthToken());
+        assert inTable == null;
+    }
+
+    @Test
+    public void testClearUsers() {
+        UserData user = new UserData("user", "password", "email");
+        dataAccess.createUser(user);
+        UserData inTable = dataAccess.getUser("user");
+        assert inTable.equals(user);
+        assert dataAccess.clearUsers();
+        inTable = dataAccess.getUser("user");
+        assert inTable == null;
     }
 }
