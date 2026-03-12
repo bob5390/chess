@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.UUID;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 
 import io.javalin.http.HttpResponseException;
 import io.javalin.http.InternalServerErrorResponse;
@@ -73,106 +72,58 @@ public class SQLDataAccess implements DataAccess {
         }
     }
 
+    private <T> T getData(String statement, String parameter, String jsonLocation, Class<T> classOf) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            PreparedStatement preparedStatement = conn.prepareStatement(statement);
+            preparedStatement.setString(1, parameter);
+            ResultSet result = preparedStatement.executeQuery();
+            if(result.next()) {
+                T toReturn = gson.fromJson(result.getString(jsonLocation), classOf);
+                return toReturn;
+            }
+            return null;
+        } catch (SQLException | DataAccessException e) {
+            throw new InternalServerErrorResponse("Connection or query error: " + e.getMessage());
+        }
+    }
+
     @Override
     public UserData getUser(String username) throws HttpResponseException {
-        try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "SELECT userDataJson FROM userData WHERE username=?";
-            PreparedStatement preparedStatement = conn.prepareStatement(statement);
-            preparedStatement.setString(1, username);
-            ResultSet result = preparedStatement.executeQuery();
-            if(result.next()) { // get first entry
-                UserData toReturn = gson.fromJson(result.getString("userDataJson"), UserData.class);
-                return toReturn;
-            } 
-            return null;
-        } catch (DataAccessException e) {
-            throw new InternalServerErrorResponse("Failed to connect to database: " + e.getMessage());
-        } catch (SQLException e) {
-            throw new InternalServerErrorResponse("Failed to close connection to database or execute query: " + e.getMessage());
-        } catch (JsonSyntaxException e) {
-            throw new InternalServerErrorResponse("Incorrect json syntax stored in database: " + e.getMessage());
-        }
+        String statement = "SELECT userDataJson FROM userData WHERE username=?";
+        return getData(statement, username, "userDataJson", UserData.class);
     }
 
     @Override
     public String createUser(UserData userData) throws HttpResponseException {
-        Connection conn = null;
-        try (Connection c = DatabaseManager.getConnection()) {
-            conn = c;
-            conn.setAutoCommit(false);
+        return runTransaction(conn -> {
             String authToken = UUID.randomUUID().toString();
             String statement = "INSERT INTO userData (username, password, email, userDataJson) VALUES (?, ?, ?, ?)";
             String userDataJson = gson.toJson(userData);
             runUpdate(conn, statement, userData.getUsername(), userData.getPassword(), userData.getEmail(), userDataJson);
-            conn.commit();
             return authToken;
-        } catch (SQLException | DataAccessException e) {
-            try {
-                if(conn != null && !conn.isClosed()) {
-                    conn.rollback();
-                }
-            } catch (SQLException e1) {
-                throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
-            }
-            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
-        }
+        });
     }
 
     @Override
     public AuthData getAuth(String authToken) throws HttpResponseException {
-        try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "SELECT authDataJson FROM authData WHERE authToken=?";
-            PreparedStatement preparedStatement = conn.prepareStatement(statement);
-            preparedStatement.setString(1, authToken);
-            ResultSet result = preparedStatement.executeQuery();
-            if(result.next()) {
-                AuthData toReturn = gson.fromJson(result.getString("authDataJson"), AuthData.class);
-                return toReturn;
-            }
-            return null;
-        } catch (SQLException | DataAccessException e) {
-            throw new InternalServerErrorResponse("Connection or query error: " + e.getMessage());
-        }
+        String statement = "SELECT authDataJson FROM authData WHERE authToken=?";
+        return getData(statement, authToken, "authDataJson", AuthData.class);
     }
 
     @Override
     public AuthData getAuth(UserData userData) throws HttpResponseException {
-        try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "SELECT authDataJson FROM authData WHERE username=?";
-            PreparedStatement preparedStatement = conn.prepareStatement(statement);
-            preparedStatement.setString(1, userData.getUsername());
-            ResultSet result = preparedStatement.executeQuery();
-            if(result.next()) {
-                AuthData toReturn = gson.fromJson(result.getString("authDataJson"), AuthData.class);
-                return toReturn;
-            }
-            return null;
-        } catch (SQLException | DataAccessException e) {
-            throw new InternalServerErrorResponse("Connection or query error: " + e.getMessage());
-        }
+        String statement = "SELECT authDataJson FROM authData WHERE username=?";
+        return getData(statement, userData.getUsername(), "authDataJson", AuthData.class);
     }
 
     @Override
-    public AuthData createAuth(String authToken, String username) throws HttpResponseException {
-        Connection conn = null;
-        try (Connection c = DatabaseManager.getConnection()) {
-            conn = c;
-            conn.setAutoCommit(false);
+    public AuthData createAuth(String authToken, String username) {
+        return runTransaction(conn -> {
             String statement = "INSERT INTO authData (authToken, username, authDataJson) VALUES (?, ?, ?)";
             AuthData authData = new AuthData(authToken, username);
             runUpdate(conn, statement, authToken, username, gson.toJson(authData));
-            conn.commit();
             return authData;
-        } catch (SQLException | DataAccessException e) {
-            try {
-                if(conn != null && !conn.isClosed()) {
-                    conn.rollback();
-                }
-            } catch (SQLException e1) {
-                throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
-            }
-            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
-        }
+        });
     }
 
     @Override
@@ -182,26 +133,11 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public boolean deleteAuth(AuthData authData) throws HttpResponseException {
-        Connection conn = null;
-        try (Connection c = DatabaseManager.getConnection()) {
-            conn = c;
-            conn.setAutoCommit(false);
-
+        return runTransaction(conn -> {
             String statement = "DELETE FROM authData WHERE authToken=?";
             runUpdate(conn, statement, authData.getAuthToken());
-
-            conn.commit();
             return true;
-        } catch (SQLException | DataAccessException e) {
-            try {
-                if(conn != null && !conn.isClosed()) {
-                    conn.rollback();
-                }
-            } catch (SQLException e1) {
-                throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
-            }
-            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
-        }
+        });
     }
 
     @Override
@@ -222,59 +158,28 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public GameData getGame(String gameID) throws HttpResponseException {
-        try (Connection conn = DatabaseManager.getConnection()) {
-            String statement = "SELECT gameDataJson FROM gameData WHERE gameID=?";
-            PreparedStatement preparedStatement = conn.prepareStatement(statement);
-            preparedStatement.setString(1, gameID);
-            ResultSet result = preparedStatement.executeQuery();
-            if(result.next()) {
-                return gson.fromJson(result.getString("gameDataJson"), GameData.class);
-            }
-            return null;
-        } catch (SQLException | DataAccessException e) {
-            throw new InternalServerErrorResponse("Connection or query error: " + e.getMessage());
-        }
+        String statement = "SELECT gameDataJson FROM gameData WHERE gameID=?";
+        return getData(statement, gameID, "gameDataJson", GameData.class);
     }
 
     @Override
     public GameData createGame(String gameName) throws HttpResponseException {
-        Connection conn = null;
-        try (Connection c = DatabaseManager.getConnection()) {
-            conn = c;
-            conn.setAutoCommit(false);
-
+        return runTransaction(conn -> {
+            String statement = "INSERT INTO gameData (gameName, whiteUsername, blackUsername, chessGameJson, gameDataJson) VALUES (?, ?, ?, ?, ?)";
             GameData gameData = new GameData(null, null, gameName);
-            String statement = 
-                "INSERT INTO gameData (gameName, whiteUsername, blackUsername, chessGameJson, gameDataJson) VALUES (?, ?, ?, ?, ?)";
             ResultSet result = runUpdate(conn, statement, gameName, "", "", gson.toJson(gameData.getChessGame()), gson.toJson(gameData));
             result.next();
-            int gameId = result.getInt(1);
-            gameData.setGameID(Integer.toString(gameId));
-
+            int gameID = result.getInt(1);
+            gameData.setGameID(Integer.toString(gameID));
             statement = "UPDATE gameData SET gameDataJson=? WHERE gameID=?";
-            runUpdate(conn, statement, gson.toJson(gameData), gameId);
-
-            conn.commit();
+            runUpdate(conn, statement, gson.toJson(gameData), gameID);
             return gameData;
-        } catch (SQLException | DataAccessException e) {
-            try {
-                if(conn != null && !conn.isClosed()) {
-                    conn.rollback();
-                }
-            } catch (SQLException e1) {
-                throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
-            }
-            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
-        }
+        });
     }
 
     @Override
     public GameData joinGame(GameData gameData, UserData userData, String teamColor) throws HttpResponseException {
-        Connection conn = null;
-        try (Connection c = DatabaseManager.getConnection()) {
-            conn = c;
-            conn.setAutoCommit(false);
-
+        return runTransaction(conn -> {
             String statement = "";
             switch (teamColor) {
                 case "WHITE":
@@ -292,18 +197,8 @@ public class SQLDataAccess implements DataAccess {
                 runUpdate(conn, statement, userData.getUsername(), gson.toJson(gameData), Integer.parseInt(gameData.getGameID()));
             }
 
-            conn.commit();
             return gameData;
-        } catch (SQLException | DataAccessException e) {
-            try {
-                if(conn != null && !conn.isClosed()) {
-                    conn.rollback();
-                }
-            } catch (SQLException e1) {
-                throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
-            }
-            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
-        }
+        });
     }
 
     @Override
@@ -325,67 +220,49 @@ public class SQLDataAccess implements DataAccess {
 
     @Override
     public boolean clearGames() throws HttpResponseException {
-        Connection conn = null;
-        try (Connection c = DatabaseManager.getConnection()) {
-            conn = c;
-            conn.setAutoCommit(false);
-
-            String statement = "TRUNCATE TABLE gameData"; // this should also reset the auto increment
+        return runTransaction(conn -> {
+            String statement = "TRUNCATE TABLE gameData";
             runUpdate(conn, statement);
-
-            conn.commit();
             return true;
-        } catch (SQLException | DataAccessException e) {
-            try {
-                if(conn != null && !conn.isClosed()) {
-                    conn.rollback();
-                }
-            } catch (SQLException e1) {
-                throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
-            }
-            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
-        }
+        });
     }
 
     @Override
     public boolean clearAuths() throws HttpResponseException {
-        Connection conn = null;
-        try (Connection c = DatabaseManager.getConnection()) {
-            conn = c;
-            conn.setAutoCommit(false);
-
-            String statement = "TRUNCATE TABLE authData";
-            runUpdate(conn, statement);
-
-            conn.commit();
+        return runTransaction(conn -> {
+            String statment = "TRUNCATE TABLE authData";
+            runUpdate(conn, statment);
             return true;
-        } catch (SQLException | DataAccessException e) {
-            try {
-                if(conn != null && !conn.isClosed()) {
-                    conn.rollback();
-                }
-            } catch (SQLException e1) {
-                throw new InternalServerErrorResponse("Connection error: " + e1.getMessage());
-            }
-            throw new InternalServerErrorResponse("Connection or update error: " + e.getMessage());
-        }
+        });
     }
 
     @Override
     public boolean clearUsers() throws HttpResponseException {
+        return runTransaction(conn -> {
+            String statment = "TRUNCATE TABLE userData";
+            runUpdate(conn, statment);
+            return true;
+        });
+    }
+    
+    @FunctionalInterface
+    private interface SQLFunction<T, R> {
+        R apply(T t) throws SQLException;
+    }
+    private <T> T runTransaction(SQLFunction<Connection, T> operation) {
         Connection conn = null;
         try (Connection c = DatabaseManager.getConnection()) {
             conn = c;
             conn.setAutoCommit(false);
 
-            String statement = "TRUNCATE TABLE userData";
-            runUpdate(conn, statement);
+            T result = operation.apply(conn);
 
             conn.commit();
-            return true;
+            return result;
+
         } catch (SQLException | DataAccessException e) {
             try {
-                if(conn != null && !conn.isClosed()) {
+                if (conn != null && !conn.isClosed()) {
                     conn.rollback();
                 }
             } catch (SQLException e1) {

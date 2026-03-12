@@ -227,6 +227,7 @@ public class SQLDAOTests {
         GameData result = dataAccess.updateGame(gameData);
         assert result.getChessGame().equals(game);
     }
+    @Test
     public void testUpdateGameMultipleMoves() {
         GameData gameData = dataAccess.createGame("Game");
         ChessPosition startPosition = new ChessPosition(2, 4);
