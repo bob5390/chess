@@ -3,16 +3,21 @@ package client;
 import org.junit.jupiter.api.*;
 
 import kotlin.NotImplementedError;
+import requests.RegisterRequest;
+import results.RegisterResult;
 import server.Server;
+import server.ServerFacade;
 
 
 public class ServerFacadeTests {
 
     private static Server server;
+    private static ServerFacade facade;
 
     @BeforeAll
     public static void init() {
         server = new Server();
+        facade = new ServerFacade("http://localhost:0");
         var port = server.run(0);
         System.out.println("Started test HTTP server on " + port);
     }
@@ -25,7 +30,9 @@ public class ServerFacadeTests {
 
     @Test
     public void testRegisterPass() {
-        Assertions.assertTrue(true);
+        RegisterResult result = facade.register(new RegisterRequest("user", "password", "email"));
+        Assertions.assertNotNull(result.getAuthToken());
+        Assertions.assertTrue(result.getUsername() == "user");
     }
     @Test
     public void testRegisterFail() {
