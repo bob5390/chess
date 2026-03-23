@@ -1,6 +1,8 @@
 package client;
 
 import org.junit.jupiter.api.*;
+
+import kotlin.NotImplementedError;
 import server.Server;
 
 
@@ -22,8 +24,56 @@ public class ServerFacadeTests {
 
 
     @Test
-    public void sampleTest() {
+    public void testRegisterPass() {
         Assertions.assertTrue(true);
     }
+    @Test
+    public void testRegisterFail() {
+        throw new NotImplementedError();
+    }
 
+    @Test
+    public void testLoginPass() {
+        throw new NotImplementedError();
+    }
+    @Test
+    public void testLoginFail() {
+        throw new NotImplementedError();
+    }
+
+    @Test
+    public void testLogoutPass() {
+        throw new NotImplementedError();
+    }
+    @Test
+    public void testLogoutFail() {
+        throw new NotImplementedError();
+    }
+
+    @Test
+    public void testCreateGamePass() {
+        throw new NotImplementedError();
+    }
+    @Test
+    public void testCreateGameFail() {
+        throw new NotImplementedError();
+    }
+
+    @Test
+    public void testJoinGamePass() {
+        throw new NotImplementedError();
+    }
+    @Test
+    public void testJoinGameFail() {
+        throw new NotImplementedError();
+    }
+
+    @Test
+    public void testListGamesPass() {
+        throw new NotImplementedError();
+    }
+    @Test
+    public void testListGamesFail() {
+        throw new NotImplementedError();
+    }
 }
