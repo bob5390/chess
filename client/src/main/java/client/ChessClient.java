@@ -19,11 +19,13 @@ import ui.EscapeSequences;
 
 public class ChessClient {
     private final ServerFacade serverFacade;
-    private enum State {LOGGED_OUT, LOGGED_IN};
+    private enum State {LOGGED_OUT, LOGGED_IN, IN_GAME};
     private State state = State.LOGGED_OUT;
     public static final String QUIT_MESSAGE = "Goodbye!";
     private String curAuthToken = "";
     private GameData currentGame = null;
+    private BoardDrawer boardDrawer = new BoardDrawer();
+    private String currentColor = "";
 
     public ChessClient(String serverUrl) {
         serverFacade = new ServerFacade(serverUrl);
@@ -54,10 +56,15 @@ public class ChessClient {
     }
 
     public String curPrompt() {
-        if(state == State.LOGGED_IN) {
-            return "Chess >>> ";
-        } else {
+        if(state == State.IN_GAME) {
+            boardDrawer.setBoard(currentGame.getChessGame().getBoard());
+            boardDrawer.drawBoard(currentColor);
+        }
+
+        if(state == State.LOGGED_OUT) {
             return "Login/Register >>> ";
+        } else {
+            return "Chess >>> ";
         }
     }
 
@@ -184,6 +191,8 @@ public class ChessClient {
 
                 JoinGameResult join = serverFacade.joinGame(new JoinGameRequest(curAuthToken, color, params[0]));
                 currentGame = join.getGameData();
+                currentColor = color;
+                state = State.IN_GAME;
                 return EscapeSequences.SET_TEXT_ITALIC + "Successfully joined game" + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(HttpResponseException e) {
                 throw new Exception("Error: Couldn't join game");
@@ -199,6 +208,7 @@ public class ChessClient {
                 ListGamesResult list = serverFacade.listGames(new ListGamesRequest(curAuthToken));
                 GameData game = list.getGameByID(params[0]);
                 currentGame = game;
+                currentColor = "WHITE";
                 return EscapeSequences.SET_TEXT_ITALIC + "Observing game" + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(HttpResponseException e) {
                 throw new Exception("Error: Couldn't observe game");
