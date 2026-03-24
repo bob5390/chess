@@ -1,11 +1,13 @@
 package server;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpRequest.Builder;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 
 import com.google.gson.Gson;
 
@@ -14,64 +16,137 @@ import requests.*;
 import results.*;
 
 public class ServerFacade {
-
+    private HttpClient httpClient;
     private String serverURL = null;
+    private Gson gson;
 
     public ServerFacade(String serverURL) {
         this.serverURL = serverURL;
+        httpClient = HttpClient.newHttpClient();
+        gson = new Gson();
     }
 
     public RegisterResult register(RegisterRequest request) {
-        return makeRequest("POST", "/user", request, RegisterResult.class);
+        HttpRequest httpRequest = buildRequest("POST", "/user", request);
+        HttpResponse<String> response = sendRequest(httpRequest);
+        return handleResponse(response, RegisterResult.class);
     }
 
     public LoginResult login(LoginRequest request) {
-        return makeRequest("POST", "/session", request, LoginResult.class);
+        HttpRequest httpRequest = buildRequest("POST", "/session", request);
+        HttpResponse<String> response = sendRequest(httpRequest);
+        return handleResponse(response, LoginResult.class);
     }
 
     public LogoutResult logout(LogoutRequest request) {
-        return makeRequest("DELETE", "/session", request, LogoutResult.class);
+        HttpRequest httpRequest = buildRequest("DELETE", "/session", request);
+        HttpResponse<String> response = sendRequest(httpRequest);
+        return handleResponse(response, LogoutResult.class);
     }
 
     public CreateGameResult createGame(CreateGameRequest request) {
-        return makeRequest("POST", "/game", request, CreateGameResult.class);
+        HttpRequest httpRequest = buildRequest("POST", "/game", request);
+        HttpResponse<String> response = sendRequest(httpRequest);
+        return handleResponse(response, CreateGameResult.class);
     }
 
     public JoinGameResult joinGame(JoinGameRequest request) {
-        return makeRequest("PUT", "/game", request, JoinGameResult.class);
+        HttpRequest httpRequest = buildRequest("PUT", "/game", request);
+        HttpResponse<String> response = sendRequest(httpRequest);
+        return handleResponse(response, JoinGameResult.class);
     }
 
     public ListGamesResult listGames(ListGamesRequest request) {
-        return makeRequest("GET", "/game", request, ListGamesResult.class);
+        HttpRequest httpRequest = buildRequest("GET", "/game", request);
+        HttpResponse<String> response = sendRequest(httpRequest);
+        return handleResponse(response, ListGamesResult.class);
     }
 
-    private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) {
+    public ClearResult clearDatabase(ClearRequest request) {
+        HttpRequest httpRequest = buildRequest("DELETE", "/db", request);
+        HttpResponse<String> response = sendRequest(httpRequest);
+        return handleResponse(response, ClearResult.class);
+    }
+
+    private HttpRequest buildRequest(String method, String path, Object body) {
+        Builder request = HttpRequest.newBuilder()
+                             .uri(URI.create(serverURL + path))
+                             .method(method, makeRequestBody(body));
+        if(body != null) {
+            request.setHeader("Content-Type", "application/json");
+            if(body.getClass().equals(LogoutRequest.class)) {
+                request.setHeader("Authorization", ((LogoutRequest)body).getAuthToken());
+            } else if(body.getClass().equals(CreateGameRequest.class)) {
+                request.setHeader("Authorization", ((CreateGameRequest)body).getAuthToken());
+            } else if(body.getClass().equals(JoinGameRequest.class)) {
+                request.setHeader("Authorization", ((JoinGameRequest)body).getAuthToken());
+            } else if(body.getClass().equals(ListGamesRequest.class)) {
+                request.setHeader("Authorization", ((ListGamesRequest)body).getAuthToken());
+            }
+        }
+        return request.build();
+    }
+
+    private BodyPublisher makeRequestBody(Object body) {
+        if(body != null) {
+            return BodyPublishers.ofString(gson.toJson(body));
+        } else {
+            return BodyPublishers.noBody();
+        }
+    }
+
+    private HttpResponse<String> sendRequest(HttpRequest request) {
         try {
-            URL url = (new URI(serverURL + path)).toURL();
-            HttpURLConnection http = (HttpURLConnection) url.openConnection();
-            http.setRequestMethod(method);
-            http.setDoOutput(true);
-
-            if(request != null) {
-                http.addRequestProperty("Content-Type", "application/json");
-                String requestData = new Gson().toJson(request);
-                OutputStream requestBody = http.getOutputStream();
-                requestBody.write(requestData.getBytes());
-            }
-            http.connect();
-            if(http.getResponseCode() < 200 || http.getResponseCode() > 299) {
-                throw new HttpResponseException(http.getResponseCode());
-            }
-
-            if(http.getContentLength() < 0 && responseClass != null) {
-                InputStream responseBody = http.getInputStream();
-                InputStreamReader reader = new InputStreamReader(responseBody);
-                return new Gson().fromJson(reader, responseClass);
-            }
-            return null;
-        } catch (Exception e) {
-            e.printStackTrace();
+            return httpClient.send(request, BodyHandlers.ofString());
+        } catch (Exception ex) {
             throw new HttpResponseException(500, "error making request to server");
         }
     }
+
+    private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass) {
+        int status = response.statusCode();
+        if (status < 200 || status > 299) {
+            String body = response.body();
+            if (body != null) {
+                throw new HttpResponseException(500, "bad response but received body: " + body + "; reported status: " + status);
+            }
+
+            throw new HttpResponseException(500, "other failure: " + status);
+        }
+
+        if (responseClass != null) {
+            return gson.fromJson(response.body(), responseClass);
+        }
+        return null;
+    }
+
+    // private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) {
+    //     try {
+    //         URL url = (new URI(serverURL + path)).toURL();
+    //         HttpURLConnection http = (HttpURLConnection) url.openConnection();
+    //         http.setRequestMethod(method);
+    //         http.setDoOutput(true);
+
+    //         if(request != null) {
+    //             http.addRequestProperty("Content-Type", "application/json");
+    //             String requestData = new Gson().toJson(request);
+    //             OutputStream requestBody = http.getOutputStream();
+    //             requestBody.write(requestData.getBytes());
+    //         }
+    //         http.connect();
+    //         if(http.getResponseCode() < 200 || http.getResponseCode() > 299) {
+    //             throw new HttpResponseException(http.getResponseCode());
+    //         }
+
+    //         if(http.getContentLength() < 0 && responseClass != null) {
+    //             InputStream responseBody = http.getInputStream();
+    //             InputStreamReader reader = new InputStreamReader(responseBody);
+    //             return new Gson().fromJson(reader, responseClass);
+    //         }
+    //         return null;
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //         throw new HttpResponseException(500, "error making request to server");
+    //     }
+    // }
 }
