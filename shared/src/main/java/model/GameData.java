@@ -45,6 +45,6 @@ public class GameData {
 
     @Override
     public String toString() {
-        return String.format("%i. Game name: %s White: %s Black: %s", gameID, gameName, whiteUsername, blackUsername);
+        return String.format("%s. Game name: %s White: %s Black: %s", gameID, gameName, whiteUsername, blackUsername);
     }
 }

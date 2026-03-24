@@ -16,6 +16,12 @@ public class ListGamesResult {
     }
 
     public ArrayList<GameData> getGameList() { return games; }
+    public GameData getGameByID(String id) {
+        for(GameData game : games) {
+            if(game.getGameID().equals(id)) return game;
+        }
+        return null;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -26,8 +32,10 @@ public class ListGamesResult {
     @Override
     public String toString() {
         String toReturn = "";
-        for(GameData game : games) {
-            toReturn += game.toString();
+        games.sort((a,b) -> Integer.compare(Integer.parseInt(a.getGameID()), Integer.parseInt(b.getGameID())));
+        for(int i = 0; i < games.size(); i++) {
+            toReturn += games.get(i).toString();
+            if(i != games.size()-1) toReturn += "\n";
         }
         return toReturn;
     }

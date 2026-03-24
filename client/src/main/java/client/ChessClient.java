@@ -10,6 +10,7 @@ import requests.ListGamesRequest;
 import requests.LoginRequest;
 import requests.LogoutRequest;
 import requests.RegisterRequest;
+import results.JoinGameResult;
 import results.ListGamesResult;
 import results.LoginResult;
 import results.RegisterResult;
@@ -22,6 +23,7 @@ public class ChessClient {
     private State state = State.LOGGED_OUT;
     public static final String QUIT_MESSAGE = "Goodbye!";
     private String curAuthToken = "";
+    private GameData currentGame = null;
 
     public ChessClient(String serverUrl) {
         serverFacade = new ServerFacade(serverUrl);
@@ -33,6 +35,7 @@ public class ChessClient {
             validateTokens(tokens);
             String command = tokens[0];
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
+            if(command.equals("quit")) return quit();
             return switch (command) {
                 case "help" -> help();
                 case "quit" -> quit();
@@ -59,23 +62,20 @@ public class ChessClient {
     }
 
     private void validateTokens(String... tokens) throws Exception {
-        if(tokens.length < 1
-        || !tokens[0].equals("help")) {
-            throw new Exception(String.format("Error: %s is not a valid command", String.join(" ", tokens)));
-        }
-
         if(state == State.LOGGED_IN) {
-            if(!tokens[0].equals("logout")
-            || !tokens[0].equals("create")
-            || !tokens[0].equals("list")
-            || !tokens[0].equals("join")
-            || !tokens[0].equals("observe")) {
+            if(!tokens[0].equals("help")
+            && !tokens[0].equals("logout")
+            && !tokens[0].equals("create")
+            && !tokens[0].equals("list")
+            && !tokens[0].equals("join")
+            && !tokens[0].equals("observe")) {
                 throw new Exception(String.format("Error: %s is not a valid command", String.join(" ", tokens)));
             }
         } else {
-            if(!tokens[0].equals("quit")
-            || !tokens[0].equals("login")
-            || !tokens[0].equals("register")) {
+            if(!tokens[0].equals("help")
+            && !tokens[0].equals("quit")
+            && !tokens[0].equals("login")
+            && !tokens[0].equals("register")) {
                 throw new Exception(String.format("Error: %s is not a valid command", String.join(" ", tokens)));
             }
         }
@@ -83,10 +83,13 @@ public class ChessClient {
 
     private String help() {
         if(state == State.LOGGED_IN) {
-            return "";
+            return EscapeSequences.SET_TEXT_ITALIC
+                + "  create <game name>\n  help\n  join <ID> [WHITE|BLACK]\n  list\n  logout  \n  observe <ID>"
+                + EscapeSequences.RESET_TEXT_ITALIC;
         } else {
             return EscapeSequences.SET_TEXT_ITALIC 
-                + "  help\n  login <username> <password>\n  register <username> <password> <email>\n  quit";
+                + "  help\n  login <username> <password>\n  register <username> <password> <email>\n  quit"
+                + EscapeSequences.RESET_TEXT_ITALIC;
         }
     }
 
@@ -101,7 +104,8 @@ public class ChessClient {
             try {
                 LoginResult login = serverFacade.login(new LoginRequest(params[0], params[1]));
                 curAuthToken = login.getAuthToken();
-                return EscapeSequences.SET_TEXT_ITALIC + "Successfully logged in " + params[0];
+                state = State.LOGGED_IN;
+                return EscapeSequences.SET_TEXT_ITALIC + "Successfully logged in " + params[0] + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(HttpResponseException e) {
                 throw new Exception(String.format("Error: Couldn't log in user `%s`", params[0]));
             }
@@ -115,7 +119,8 @@ public class ChessClient {
             try {
                 RegisterResult register = serverFacade.register(new RegisterRequest(params[0], params[1], params[2]));
                 curAuthToken = register.getAuthToken();
-                return EscapeSequences.SET_TEXT_ITALIC + "Successfully registered " + params[0];
+                state = State.LOGGED_IN;
+                return EscapeSequences.SET_TEXT_ITALIC + "Successfully registered " + params[0] + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(HttpResponseException e) {
                 throw new Exception(String.format("Error: Couldn't register user `%s`", params[0]));
             }
@@ -126,7 +131,8 @@ public class ChessClient {
         try {
             serverFacade.logout(new LogoutRequest(curAuthToken));
             curAuthToken = "";
-            return EscapeSequences.SET_TEXT_ITALIC + "Successfully logged out";
+            state = State.LOGGED_OUT;
+            return EscapeSequences.SET_TEXT_ITALIC + "Successfully logged out" + EscapeSequences.RESET_TEXT_ITALIC;
         } catch(HttpResponseException e) {
             throw new Exception("Error: Couldn't log out");
         }
@@ -137,8 +143,8 @@ public class ChessClient {
             throw new Exception("Error: Invalid number of arguments - Usage: create <game name>");
         } else {
             try {
-                serverFacade.createGame(new CreateGameRequest(curAuthToken, params[1]));
-                return EscapeSequences.SET_TEXT_ITALIC + "Successfully created game " + params[0];
+                serverFacade.createGame(new CreateGameRequest(curAuthToken, params[0]));
+                return EscapeSequences.SET_TEXT_ITALIC + "Successfully created game " + params[0] + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(HttpResponseException e) {
                 throw new Exception(String.format("Error: Couldn't create game `%s`", params[0]));
             }
@@ -155,13 +161,15 @@ public class ChessClient {
     }
 
     private String join(String... params) throws Exception {
-        if(params.length != 1 || params.length != 2) {
+        if(params.length != 1 && params.length != 2) {
             throw new Exception("Error: Invalid number of arguments - Usage: join <ID> [WHITE|BLACK]");
         } else {
             try {
+                System.out.println("params->" + String.join(" ", params));
+                System.out.println("params length: " + params.length);
                 // randomize player color if needed
                 ListGamesResult list = serverFacade.listGames(new ListGamesRequest(curAuthToken));
-                GameData game = list.getGameList().get(Integer.parseInt(params[0]));
+                GameData game = list.getGameByID(params[0]);
                 String color = null;
                 if(game.getWhiteUsername() != null && !game.getWhiteUsername().equals("")) {
                     if(game.getBlackUsername() != null && !game.getBlackUsername().equals("")) {
@@ -172,10 +180,11 @@ public class ChessClient {
                 } else {
                     color = "WHITE";
                 }
-                if(params.length == 2) color = params[1];
+                if(params.length == 2) color = params[1].toUpperCase();
 
-                serverFacade.joinGame(new JoinGameRequest(curAuthToken, color, params[0]));
-                return EscapeSequences.SET_TEXT_ITALIC + "Successfully joined game";
+                JoinGameResult join = serverFacade.joinGame(new JoinGameRequest(curAuthToken, color, params[0]));
+                currentGame = join.getGameData();
+                return EscapeSequences.SET_TEXT_ITALIC + "Successfully joined game" + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(HttpResponseException e) {
                 throw new Exception("Error: Couldn't join game");
             }
@@ -188,8 +197,9 @@ public class ChessClient {
         } else {
             try {
                 ListGamesResult list = serverFacade.listGames(new ListGamesRequest(curAuthToken));
-                GameData game = list.getGameList().get(Integer.parseInt(params[0]));
-                return EscapeSequences.SET_TEXT_ITALIC + "Observing game";
+                GameData game = list.getGameByID(params[0]);
+                currentGame = game;
+                return EscapeSequences.SET_TEXT_ITALIC + "Observing game" + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(HttpResponseException e) {
                 throw new Exception("Error: Couldn't observe game");
             }

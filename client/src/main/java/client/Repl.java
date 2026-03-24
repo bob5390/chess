@@ -13,7 +13,7 @@ public class Repl {
 
     public void run() {
         System.out.print(EscapeSequences.SET_TEXT_BOLD);
-        System.out.println(EscapeSequences.BLACK_PAWN + "Welcome to chess! Type `help` to see a list of valid commands.");
+        System.out.println(EscapeSequences.BLACK_PAWN + "Welcome to chess! Type `help` to see a list of valid commands." + EscapeSequences.RESET_TEXT_BOLD_FAINT);
         Scanner scanner = new Scanner(System.in);
 
         String parsedInput = "";
@@ -27,12 +27,12 @@ public class Repl {
             } else {
                 System.out.print(EscapeSequences.SET_TEXT_COLOR_BLUE);
             }
-            System.out.print(parsedInput);
+            System.out.print(parsedInput + EscapeSequences.RESET_TEXT_COLOR);
         }
         scanner.close();
     }
 
     private void promptUser() {
-        System.out.print("\n\n" + EscapeSequences.SET_TEXT_FAINT + client.curPrompt());
+        System.out.print("\n\n" + EscapeSequences.SET_TEXT_FAINT + client.curPrompt() + EscapeSequences.RESET_TEXT_BOLD_FAINT);
     }
 }
