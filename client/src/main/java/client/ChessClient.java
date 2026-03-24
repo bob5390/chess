@@ -3,8 +3,14 @@ package client;
 import java.util.Arrays;
 
 import io.javalin.http.HttpResponseException;
+import model.GameData;
+import requests.CreateGameRequest;
+import requests.JoinGameRequest;
+import requests.ListGamesRequest;
 import requests.LoginRequest;
+import requests.LogoutRequest;
 import requests.RegisterRequest;
+import results.ListGamesResult;
 import results.LoginResult;
 import results.RegisterResult;
 import server.ServerFacade;
@@ -32,11 +38,11 @@ public class ChessClient {
                 case "quit" -> quit();
                 case "login" -> login(params);
                 case "register" -> register(params);
-                // case "logout" -> logout();
-                // case "create" -> create(params);
-                // case "list" -> list();
-                // case "join" -> join(params);
-                // case "observe" -> observe(params);
+                case "logout" -> logout();
+                case "create" -> create(params);
+                case "list" -> list();
+                case "join" -> join(params);
+                case "observe" -> observe(params);
                 default -> throw new Exception("Error: Unknown Command");
             };
         } catch(Exception e) {
@@ -112,6 +118,80 @@ public class ChessClient {
                 return EscapeSequences.SET_TEXT_ITALIC + "Successfully registered " + params[0];
             } catch(HttpResponseException e) {
                 throw new Exception(String.format("Error: Couldn't register user `%s`", params[0]));
+            }
+        }
+    }
+
+    private String logout() throws Exception {
+        try {
+            serverFacade.logout(new LogoutRequest(curAuthToken));
+            curAuthToken = "";
+            return EscapeSequences.SET_TEXT_ITALIC + "Successfully logged out";
+        } catch(HttpResponseException e) {
+            throw new Exception("Error: Couldn't log out");
+        }
+    }
+
+    private String create(String... params) throws Exception {
+        if(params.length != 1) {
+            throw new Exception("Error: Invalid number of arguments - Usage: create <game name>");
+        } else {
+            try {
+                serverFacade.createGame(new CreateGameRequest(curAuthToken, params[1]));
+                return EscapeSequences.SET_TEXT_ITALIC + "Successfully created game " + params[0];
+            } catch(HttpResponseException e) {
+                throw new Exception(String.format("Error: Couldn't create game `%s`", params[0]));
+            }
+        }
+    }
+
+    private String list() throws Exception {
+        try {
+            ListGamesResult list = serverFacade.listGames(new ListGamesRequest(curAuthToken));
+            return list.toString();
+        } catch(HttpResponseException e) {
+            throw new Exception("Error: Couldn't list games");
+        }
+    }
+
+    private String join(String... params) throws Exception {
+        if(params.length != 1 || params.length != 2) {
+            throw new Exception("Error: Invalid number of arguments - Usage: join <ID> [WHITE|BLACK]");
+        } else {
+            try {
+                // randomize player color if needed
+                ListGamesResult list = serverFacade.listGames(new ListGamesRequest(curAuthToken));
+                GameData game = list.getGameList().get(Integer.parseInt(params[0]));
+                String color = null;
+                if(game.getWhiteUsername() != null && !game.getWhiteUsername().equals("")) {
+                    if(game.getBlackUsername() != null && !game.getBlackUsername().equals("")) {
+                        throw new Exception("Error: Game already full");
+                    } else {
+                        color = "BLACK";
+                    }
+                } else {
+                    color = "WHITE";
+                }
+                if(params.length == 2) color = params[1];
+
+                serverFacade.joinGame(new JoinGameRequest(curAuthToken, color, params[0]));
+                return EscapeSequences.SET_TEXT_ITALIC + "Successfully joined game";
+            } catch(HttpResponseException e) {
+                throw new Exception("Error: Couldn't join game");
+            }
+        }
+    }
+
+    private String observe(String... params) throws Exception {
+        if(params.length != 1) {
+            throw new Exception("Error: Invalid number of arguments - Usage: observe <ID>");
+        } else {
+            try {
+                ListGamesResult list = serverFacade.listGames(new ListGamesRequest(curAuthToken));
+                GameData game = list.getGameList().get(Integer.parseInt(params[0]));
+                return EscapeSequences.SET_TEXT_ITALIC + "Observing game";
+            } catch(HttpResponseException e) {
+                throw new Exception("Error: Couldn't observe game");
             }
         }
     }

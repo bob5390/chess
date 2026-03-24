@@ -42,4 +42,9 @@ public class GameData {
             && this.gameName.equals(toTest.getGameName())
             && this.chessGame.equals(toTest.getChessGame());
     }
+
+    @Override
+    public String toString() {
+        return String.format("%i. Game name: %s White: %s Black: %s", gameID, gameName, whiteUsername, blackUsername);
+    }
 }

@@ -22,4 +22,13 @@ public class ListGamesResult {
         ListGamesResult toTest = (ListGamesResult) obj;
         return games.equals(toTest.getGameList());
     }
+
+    @Override
+    public String toString() {
+        String toReturn = "";
+        for(GameData game : games) {
+            toReturn += game.toString();
+        }
+        return toReturn;
+    }
 }
