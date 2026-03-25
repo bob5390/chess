@@ -1,3 +1,10 @@
 {
-    "java.configuration.updateBuildConfiguration": "automatic"
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "terminal.integrated.profiles.windows": {
+    "Command Prompt (UTF-8)": {
+      "path": "C:\\Windows\\System32\\cmd.exe",
+      "args": ["/k", "chcp 65001"]
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "Command Prompt (UTF-8)"
 }

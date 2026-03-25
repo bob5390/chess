@@ -48,6 +48,7 @@ public class ChessClient {
                 case "list" -> list();
                 case "join" -> join(params);
                 case "observe" -> observe(params);
+                case "leave" -> leave();
                 default -> throw new Exception("Error: Unknown Command");
             };
         } catch(Exception e) {
@@ -57,8 +58,10 @@ public class ChessClient {
 
     public String curPrompt() {
         if(state == State.IN_GAME) {
+            System.out.println(EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT);
             boardDrawer.setBoard(currentGame.getChessGame().getBoard());
             boardDrawer.drawBoard(currentColor);
+            // System.out.print(EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT);
         }
 
         if(state == State.LOGGED_OUT) {
@@ -78,6 +81,11 @@ public class ChessClient {
             && !tokens[0].equals("observe")) {
                 throw new Exception(String.format("Error: %s is not a valid command", String.join(" ", tokens)));
             }
+        } else if(state == State.IN_GAME) {
+            if(!tokens[0].equals("help")
+            && !tokens[0].equals("leave")) {
+                throw new Exception(String.format("Error: %s is not a valid command", String.join(" ", tokens)));
+            }
         } else {
             if(!tokens[0].equals("help")
             && !tokens[0].equals("quit")
@@ -92,6 +100,10 @@ public class ChessClient {
         if(state == State.LOGGED_IN) {
             return EscapeSequences.SET_TEXT_ITALIC
                 + "  create <game name>\n  help\n  join <ID> [WHITE|BLACK]\n  list\n  logout  \n  observe <ID>"
+                + EscapeSequences.RESET_TEXT_ITALIC;
+        } else if(state == State.IN_GAME) {
+            return EscapeSequences.SET_TEXT_ITALIC
+                + "  help\n  leave"
                 + EscapeSequences.RESET_TEXT_ITALIC;
         } else {
             return EscapeSequences.SET_TEXT_ITALIC 
@@ -172,8 +184,6 @@ public class ChessClient {
             throw new Exception("Error: Invalid number of arguments - Usage: join <ID> [WHITE|BLACK]");
         } else {
             try {
-                System.out.println("params->" + String.join(" ", params));
-                System.out.println("params length: " + params.length);
                 // randomize player color if needed
                 ListGamesResult list = serverFacade.listGames(new ListGamesRequest(curAuthToken));
                 GameData game = list.getGameByID(params[0]);
@@ -209,10 +219,18 @@ public class ChessClient {
                 GameData game = list.getGameByID(params[0]);
                 currentGame = game;
                 currentColor = "WHITE";
+                state = State.IN_GAME; // temporary state
                 return EscapeSequences.SET_TEXT_ITALIC + "Observing game" + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(HttpResponseException e) {
                 throw new Exception("Error: Couldn't observe game");
             }
         }
+    }
+
+    private String leave() {
+        currentColor = "";
+        currentGame = null;
+        state = State.LOGGED_IN;
+        return EscapeSequences.SET_TEXT_ITALIC + "Left game" + EscapeSequences.RESET_TEXT_ITALIC;
     }
 }
