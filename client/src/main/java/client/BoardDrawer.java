@@ -40,9 +40,9 @@ public class BoardDrawer {
                 System.out.print(EscapeSequences.SET_BG_COLOR_LIGHT_GREY + EscapeSequences.EMPTY);
             } else {
                 if((row + col)%2 == 0) { // even summed spaces are black squares
-                    System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREEN);
+                    System.out.print(EscapeSequences.SET_BG_COLOR_DARK_BLUE);
                 } else { // odd summed spaces are white squares
-                    System.out.print(EscapeSequences.SET_BG_COLOR_GREEN);
+                    System.out.print(EscapeSequences.SET_BG_COLOR_LIGHT_BLUE);
                 }
                 System.out.print(boardArray[row-1][col-1]);
             }
