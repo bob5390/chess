@@ -72,26 +72,24 @@ public class ChessClient {
     }
 
     private void validateTokens(String... tokens) throws Exception {
-        if(state == State.LOGGED_IN) {
-            if(!tokens[0].equals("help")
-            && !tokens[0].equals("logout")
-            && !tokens[0].equals("create")
-            && !tokens[0].equals("list")
-            && !tokens[0].equals("join")
-            && !tokens[0].equals("observe")) {
-                throw new Exception(String.format("Error: %s is not a valid command", String.join(" ", tokens)));
-            }
-        } else if(state == State.IN_GAME) {
-            if(!tokens[0].equals("help")
-            && !tokens[0].equals("leave")) {
-                throw new Exception(String.format("Error: %s is not a valid command", String.join(" ", tokens)));
-            }
-        } else {
-            if(!tokens[0].equals("help")
-            && !tokens[0].equals("quit")
-            && !tokens[0].equals("login")
-            && !tokens[0].equals("register")) {
-                throw new Exception(String.format("Error: %s is not a valid command", String.join(" ", tokens)));
+        if(!tokens[0].equals("help") && !tokens[0].equals("quit")) {
+            if(state == State.LOGGED_IN) {
+                if(!tokens[0].equals("logout")
+                && !tokens[0].equals("create")
+                && !tokens[0].equals("list")
+                && !tokens[0].equals("join")
+                && !tokens[0].equals("observe")) {
+                    throw new Exception(String.format("Error: %s is not a valid command", String.join(" ", tokens)));
+                }
+            } else if(state == State.IN_GAME) {
+                if(!tokens[0].equals("leave")) {
+                    throw new Exception(String.format("Error: %s is not a valid command", String.join(" ", tokens)));
+                }
+            } else {
+                if(!tokens[0].equals("login")
+                && !tokens[0].equals("register")) {
+                    throw new Exception(String.format("Error: %s is not a valid command", String.join(" ", tokens)));
+                }
             }
         }
     }
@@ -99,11 +97,11 @@ public class ChessClient {
     private String help() {
         if(state == State.LOGGED_IN) {
             return EscapeSequences.SET_TEXT_ITALIC
-                + "  create <game name>\n  help\n  join <ID> [WHITE|BLACK]\n  list\n  logout  \n  observe <ID>"
+                + "  create <game name>\n  help\n  join <ID> [WHITE|BLACK]\n  list\n  logout  \n  observe <ID>\n  quit"
                 + EscapeSequences.RESET_TEXT_ITALIC;
         } else if(state == State.IN_GAME) {
             return EscapeSequences.SET_TEXT_ITALIC
-                + "  help\n  leave"
+                + "  help\n  leave\n  quit"
                 + EscapeSequences.RESET_TEXT_ITALIC;
         } else {
             return EscapeSequences.SET_TEXT_ITALIC 
