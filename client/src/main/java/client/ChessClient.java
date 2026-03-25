@@ -2,7 +2,6 @@ package client;
 
 import java.util.Arrays;
 
-import io.javalin.http.HttpResponseException;
 import model.GameData;
 import requests.CreateGameRequest;
 import requests.JoinGameRequest;
@@ -61,7 +60,6 @@ public class ChessClient {
             System.out.println(EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT);
             boardDrawer.setBoard(currentGame.getChessGame().getBoard());
             boardDrawer.drawBoard(currentColor);
-            // System.out.print(EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT);
         }
 
         if(state == State.LOGGED_OUT) {
@@ -123,7 +121,7 @@ public class ChessClient {
                 curAuthToken = login.getAuthToken();
                 state = State.LOGGED_IN;
                 return EscapeSequences.SET_TEXT_ITALIC + "Successfully logged in " + params[0] + EscapeSequences.RESET_TEXT_ITALIC;
-            } catch(HttpResponseException e) {
+            } catch(Exception e) {
                 throw new Exception(String.format("Error: Couldn't log in user `%s`", params[0]));
             }
         }
@@ -138,7 +136,7 @@ public class ChessClient {
                 curAuthToken = register.getAuthToken();
                 state = State.LOGGED_IN;
                 return EscapeSequences.SET_TEXT_ITALIC + "Successfully registered " + params[0] + EscapeSequences.RESET_TEXT_ITALIC;
-            } catch(HttpResponseException e) {
+            } catch(Exception e) {
                 throw new Exception(String.format("Error: Couldn't register user `%s`", params[0]));
             }
         }
@@ -150,7 +148,7 @@ public class ChessClient {
             curAuthToken = "";
             state = State.LOGGED_OUT;
             return EscapeSequences.SET_TEXT_ITALIC + "Successfully logged out" + EscapeSequences.RESET_TEXT_ITALIC;
-        } catch(HttpResponseException e) {
+        } catch(Exception e) {
             throw new Exception("Error: Couldn't log out");
         }
     }
@@ -162,7 +160,7 @@ public class ChessClient {
             try {
                 serverFacade.createGame(new CreateGameRequest(curAuthToken, params[0]));
                 return EscapeSequences.SET_TEXT_ITALIC + "Successfully created game " + params[0] + EscapeSequences.RESET_TEXT_ITALIC;
-            } catch(HttpResponseException e) {
+            } catch(Exception e) {
                 throw new Exception(String.format("Error: Couldn't create game `%s`", params[0]));
             }
         }
@@ -172,7 +170,7 @@ public class ChessClient {
         try {
             ListGamesResult list = serverFacade.listGames(new ListGamesRequest(curAuthToken));
             return list.toString();
-        } catch(HttpResponseException e) {
+        } catch(Exception e) {
             throw new Exception("Error: Couldn't list games");
         }
     }
@@ -202,7 +200,7 @@ public class ChessClient {
                 currentColor = color;
                 state = State.IN_GAME;
                 return EscapeSequences.SET_TEXT_ITALIC + "Successfully joined game" + EscapeSequences.RESET_TEXT_ITALIC;
-            } catch(HttpResponseException e) {
+            } catch(Exception e) {
                 throw new Exception("Error: Couldn't join game");
             }
         }
@@ -219,7 +217,7 @@ public class ChessClient {
                 currentColor = "WHITE";
                 state = State.IN_GAME; // temporary state
                 return EscapeSequences.SET_TEXT_ITALIC + "Observing game" + EscapeSequences.RESET_TEXT_ITALIC;
-            } catch(HttpResponseException e) {
+            } catch(Exception e) {
                 throw new Exception("Error: Couldn't observe game");
             }
         }

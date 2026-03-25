@@ -11,7 +11,6 @@ import java.net.http.HttpResponse.BodyHandlers;
 
 import com.google.gson.Gson;
 
-import io.javalin.http.HttpResponseException;
 import requests.*;
 import results.*;
 
@@ -26,43 +25,43 @@ public class ServerFacade {
         gson = new Gson();
     }
 
-    public RegisterResult register(RegisterRequest request) {
+    public RegisterResult register(RegisterRequest request) throws Exception {
         HttpRequest httpRequest = buildRequest("POST", "/user", request);
         HttpResponse<String> response = sendRequest(httpRequest);
         return handleResponse(response, RegisterResult.class);
     }
 
-    public LoginResult login(LoginRequest request) {
+    public LoginResult login(LoginRequest request) throws Exception {
         HttpRequest httpRequest = buildRequest("POST", "/session", request);
         HttpResponse<String> response = sendRequest(httpRequest);
         return handleResponse(response, LoginResult.class);
     }
 
-    public LogoutResult logout(LogoutRequest request) {
+    public LogoutResult logout(LogoutRequest request) throws Exception {
         HttpRequest httpRequest = buildRequest("DELETE", "/session", request);
         HttpResponse<String> response = sendRequest(httpRequest);
         return handleResponse(response, LogoutResult.class);
     }
 
-    public CreateGameResult createGame(CreateGameRequest request) {
+    public CreateGameResult createGame(CreateGameRequest request) throws Exception {
         HttpRequest httpRequest = buildRequest("POST", "/game", request);
         HttpResponse<String> response = sendRequest(httpRequest);
         return handleResponse(response, CreateGameResult.class);
     }
 
-    public JoinGameResult joinGame(JoinGameRequest request) {
+    public JoinGameResult joinGame(JoinGameRequest request) throws Exception {
         HttpRequest httpRequest = buildRequest("PUT", "/game", request);
         HttpResponse<String> response = sendRequest(httpRequest);
         return handleResponse(response, JoinGameResult.class);
     }
 
-    public ListGamesResult listGames(ListGamesRequest request) {
+    public ListGamesResult listGames(ListGamesRequest request) throws Exception {
         HttpRequest httpRequest = buildRequest("GET", "/game", request);
         HttpResponse<String> response = sendRequest(httpRequest);
         return handleResponse(response, ListGamesResult.class);
     }
 
-    public ClearResult clearDatabase(ClearRequest request) {
+    public ClearResult clearDatabase(ClearRequest request) throws Exception {
         HttpRequest httpRequest = buildRequest("DELETE", "/db", request);
         HttpResponse<String> response = sendRequest(httpRequest);
         return handleResponse(response, ClearResult.class);
@@ -95,23 +94,23 @@ public class ServerFacade {
         }
     }
 
-    private HttpResponse<String> sendRequest(HttpRequest request) {
+    private HttpResponse<String> sendRequest(HttpRequest request) throws Exception {
         try {
             return httpClient.send(request, BodyHandlers.ofString());
         } catch (Exception ex) {
-            throw new HttpResponseException(500, "error making request to server");
+            throw new Exception("error making request to server");
         }
     }
 
-    private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass) {
+    private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass) throws Exception {
         int status = response.statusCode();
         if (status < 200 || status > 299) {
             String body = response.body();
             if (body != null) {
-                throw new HttpResponseException(500, "bad response but received body: " + body + "; reported status: " + status);
+                throw new Exception("bad response but received body: " + body + "; reported status: " + status);
             }
 
-            throw new HttpResponseException(500, "other failure: " + status);
+            throw new Exception("other failure: " + status);
         }
 
         if (responseClass != null) {
