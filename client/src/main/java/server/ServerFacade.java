@@ -118,34 +118,4 @@ public class ServerFacade {
         }
         return null;
     }
-
-    // private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) {
-    //     try {
-    //         URL url = (new URI(serverURL + path)).toURL();
-    //         HttpURLConnection http = (HttpURLConnection) url.openConnection();
-    //         http.setRequestMethod(method);
-    //         http.setDoOutput(true);
-
-    //         if(request != null) {
-    //             http.addRequestProperty("Content-Type", "application/json");
-    //             String requestData = new Gson().toJson(request);
-    //             OutputStream requestBody = http.getOutputStream();
-    //             requestBody.write(requestData.getBytes());
-    //         }
-    //         http.connect();
-    //         if(http.getResponseCode() < 200 || http.getResponseCode() > 299) {
-    //             throw new HttpResponseException(http.getResponseCode());
-    //         }
-
-    //         if(http.getContentLength() < 0 && responseClass != null) {
-    //             InputStream responseBody = http.getInputStream();
-    //             InputStreamReader reader = new InputStreamReader(responseBody);
-    //             return new Gson().fromJson(reader, responseClass);
-    //         }
-    //         return null;
-    //     } catch (Exception e) {
-    //         e.printStackTrace();
-    //         throw new HttpResponseException(500, "error making request to server");
-    //     }
-    // }
 }

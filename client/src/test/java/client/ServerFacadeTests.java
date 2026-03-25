@@ -65,7 +65,8 @@ public class ServerFacadeTests {
             facade.register(new RegisterRequest("user", "password", "email"));
         } catch(Exception e) {
             Assertions.assertNotNull(e);
-            Assertions.assertEquals("bad response but received body: {\"message\":\"Error: username already taken\"}; reported status: 403", e.getMessage());
+            Assertions.assertEquals("bad response but received body: {\"message\":\"Error: username already taken\"}; reported status: 403",
+                                    e.getMessage());
         }
     }
 
@@ -87,7 +88,8 @@ public class ServerFacadeTests {
             facade.login(new LoginRequest("user", "password"));
         } catch(Exception e) {
             Assertions.assertNotNull(e);
-            Assertions.assertEquals("bad response but received body: {\"message\":\"Error: username not found\"}; reported status: 401", e.getMessage());
+            Assertions.assertEquals("bad response but received body: {\"message\":\"Error: username not found\"}; reported status: 401",
+                                    e.getMessage());
         }
     }
 
@@ -158,7 +160,8 @@ public class ServerFacadeTests {
             facade.joinGame(new JoinGameRequest(register2.getAuthToken(), "WHITE", "1"));
         } catch(Exception e) {
             Assertions.assertNotNull(e);
-            Assertions.assertEquals("bad response but received body: {\"message\":\"Error: cannot join, game already taken\"}; reported status: 403", e.getMessage());
+            Assertions.assertEquals("bad response but received body: {\"message\":\"Error: cannot join, game already taken\"}; reported status: 403",
+                                    e.getMessage());
         }
     }
 

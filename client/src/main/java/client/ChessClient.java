@@ -36,7 +36,7 @@ public class ChessClient {
             validateTokens(tokens);
             String command = tokens[0];
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
-            if(command.equals("quit")) return quit();
+            if(command.equals("quit")) { return quit(); }
             return switch (command) {
                 case "help" -> help();
                 case "quit" -> quit();
@@ -193,7 +193,7 @@ public class ChessClient {
                 } else {
                     color = "WHITE";
                 }
-                if(params.length == 2) color = params[1].toUpperCase();
+                if(params.length == 2) { color = params[1].toUpperCase(); }
 
                 JoinGameResult join = serverFacade.joinGame(new JoinGameRequest(curAuthToken, color, params[0]));
                 currentGame = join.getGameData();

@@ -28,7 +28,8 @@ public class ListGamesResult {
         String toReturn = "";
         int i = 1;
         for(GameData game : games) {
-            toReturn += String.format("%d. Game Name: %s White: %s Black: %s", i, game.getGameName(), game.getWhiteUsername(), game.getBlackUsername());
+            toReturn += String.format("%d. Game Name: %s White: %s Black: %s", 
+                                      i, game.getGameName(), game.getWhiteUsername(), game.getBlackUsername());
             if(i != games.size()) { toReturn += "\n"; }
             i++;
         }

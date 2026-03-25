@@ -13,7 +13,9 @@ public class Repl {
 
     public void run() {
         System.out.print(EscapeSequences.SET_TEXT_BOLD);
-        System.out.println(EscapeSequences.BLACK_PAWN + "Welcome to chess! Type `help` to see a list of valid commands." + EscapeSequences.RESET_TEXT_BOLD_FAINT);
+        System.out.println(EscapeSequences.BLACK_PAWN 
+                           + "Welcome to chess! Type `help` to see a list of valid commands." 
+                           + EscapeSequences.RESET_TEXT_BOLD_FAINT);
         Scanner scanner = new Scanner(System.in);
 
         String parsedInput = "";
