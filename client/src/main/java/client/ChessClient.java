@@ -186,7 +186,7 @@ public class ChessClient {
             try {
                 // randomize player color if needed
                 ListGamesResult list = serverFacade.listGames(new ListGamesRequest(curAuthToken));
-                GameData game = list.getGameByID(params[0]);
+                GameData game = list.getGameList().get(Integer.parseInt(params[0])-1);
                 String color = null;
                 if(game.getWhiteUsername() != null && !game.getWhiteUsername().equals("")) {
                     if(game.getBlackUsername() != null && !game.getBlackUsername().equals("")) {
@@ -216,7 +216,7 @@ public class ChessClient {
         } else {
             try {
                 ListGamesResult list = serverFacade.listGames(new ListGamesRequest(curAuthToken));
-                GameData game = list.getGameByID(params[0]);
+                GameData game = list.getGameList().get(Integer.parseInt(params[0])-1);
                 currentGame = game;
                 currentColor = "WHITE";
                 state = State.IN_GAME; // temporary state
