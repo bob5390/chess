@@ -25,7 +25,6 @@ public class ChessClient {
     private final ServerFacade serverFacade;
     private enum State {LOGGED_OUT, LOGGED_IN, IN_GAME, CONFIRM, OBSERVING};
     private State state = State.LOGGED_OUT;
-    private State prevState = State.LOGGED_OUT;
     public static final String QUIT_MESSAGE = "Goodbye!";
     private String curAuthToken = "";
     private GameData currentGame = null;
@@ -43,7 +42,10 @@ public class ChessClient {
             validateTokens(tokens);
             String command = tokens[0];
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
-            if(state == State.CONFIRM) { evalConfirm(command); }
+            if(state == State.CONFIRM) { 
+                evalConfirm(command);
+                return "";
+            }
             if(command.equals("quit")) { return quit(); }
             return switch (command) {
                 case "help" -> help();
@@ -144,7 +146,6 @@ public class ChessClient {
             try {
                 LoginResult login = serverFacade.login(new LoginRequest(params[0], params[1]));
                 curAuthToken = login.getAuthToken();
-                prevState = state;
                 state = State.LOGGED_IN;
                 return EscapeSequences.SET_TEXT_ITALIC + "Successfully logged in " + params[0] + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(Exception e) {
@@ -160,7 +161,6 @@ public class ChessClient {
             try {
                 RegisterResult register = serverFacade.register(new RegisterRequest(params[0], params[1], params[2]));
                 curAuthToken = register.getAuthToken();
-                prevState = state;
                 state = State.LOGGED_IN;
                 return EscapeSequences.SET_TEXT_ITALIC + "Successfully registered " + params[0] + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(Exception e) {
@@ -173,7 +173,6 @@ public class ChessClient {
         try {
             serverFacade.logout(new LogoutRequest(curAuthToken));
             curAuthToken = "";
-            prevState = state;
             state = State.LOGGED_OUT;
             return EscapeSequences.SET_TEXT_ITALIC + "Successfully logged out" + EscapeSequences.RESET_TEXT_ITALIC;
         } catch(Exception e) {
@@ -226,7 +225,6 @@ public class ChessClient {
                 JoinGameResult join = serverFacade.joinGame(new JoinGameRequest(curAuthToken, color, params[0]));
                 currentGame = join.getGameData();
                 currentColor = color;
-                prevState = state;
                 state = State.IN_GAME;
                 return EscapeSequences.SET_TEXT_ITALIC + "Successfully joined game" + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(Exception e) {
@@ -244,7 +242,6 @@ public class ChessClient {
                 GameData game = list.getGameList().get(Integer.parseInt(params[0])-1);
                 currentGame = game;
                 currentColor = "WHITE";
-                prevState = state;
                 state = State.OBSERVING; // temporary state
                 return EscapeSequences.SET_TEXT_ITALIC + "Observing game" + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(Exception e) {
@@ -256,7 +253,6 @@ public class ChessClient {
     private String leave() {
         currentColor = "";
         currentGame = null;
-        prevState = state;
         state = State.LOGGED_IN;
         return EscapeSequences.SET_TEXT_ITALIC + "Left game" + EscapeSequences.RESET_TEXT_ITALIC;
     }
@@ -316,9 +312,9 @@ public class ChessClient {
 
     private void evalConfirm(String command) {
         if(command.contains("y")) {
-
+            // resign from the game
         } else {
-
+            state = State.IN_GAME;
         }
     }
 }

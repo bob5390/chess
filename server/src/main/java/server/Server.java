@@ -21,16 +21,19 @@ import results.ListGamesResult;
 import results.LoginResult;
 import results.LogoutResult;
 import results.RegisterResult;
+import server.websocket.WebSocketHandler;
 import service.ChessService;
 
 public class Server {
     private final ChessService service;
+    private final WebSocketHandler wsHandler;
     private final Gson gson;
 
     private final Javalin javalin;
 
     public Server() {
         service = new ChessService(new SQLDataAccess());
+        wsHandler = new WebSocketHandler();
         gson = new Gson();
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 
@@ -42,7 +45,12 @@ public class Server {
                .post("/session", this::login)
                .put("/game", this::joinGame)
                .delete("/session", this::logout)
-               .delete("/db", this::clearDatabases);
+               .delete("/db", this::clearDatabases)
+               .ws("/ws", ws -> {
+                    ws.onConnect(wsHandler);
+                    ws.onMessage(wsHandler);
+                    ws.onClose(wsHandler);
+               });
     }
 
     public int run(int desiredPort) {
