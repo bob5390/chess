@@ -1,7 +1,12 @@
 package client;
 
 import java.util.Arrays;
+import java.util.Collection;
 
+import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import model.GameData;
 import requests.CreateGameRequest;
 import requests.JoinGameRequest;
@@ -18,13 +23,15 @@ import ui.EscapeSequences;
 
 public class ChessClient {
     private final ServerFacade serverFacade;
-    private enum State {LOGGED_OUT, LOGGED_IN, IN_GAME};
+    private enum State {LOGGED_OUT, LOGGED_IN, IN_GAME, CONFIRM, OBSERVING};
     private State state = State.LOGGED_OUT;
+    private State prevState = State.LOGGED_OUT;
     public static final String QUIT_MESSAGE = "Goodbye!";
     private String curAuthToken = "";
     private GameData currentGame = null;
     private BoardDrawer boardDrawer = new BoardDrawer();
     private String currentColor = "";
+    private String toConfirm = "";
 
     public ChessClient(String serverUrl) {
         serverFacade = new ServerFacade(serverUrl);
@@ -36,6 +43,7 @@ public class ChessClient {
             validateTokens(tokens);
             String command = tokens[0];
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
+            if(state == State.CONFIRM) { evalConfirm(command); }
             if(command.equals("quit")) { return quit(); }
             return switch (command) {
                 case "help" -> help();
@@ -48,6 +56,10 @@ public class ChessClient {
                 case "join" -> join(params);
                 case "observe" -> observe(params);
                 case "leave" -> leave();
+                case "move" -> move(params);
+                case "redraw" -> redraw();
+                case "resign" -> resign();
+                case "highlight" -> highlightMoves(params);
                 default -> throw new Exception("Error: Unknown Command");
             };
         } catch(Exception e) {
@@ -64,6 +76,8 @@ public class ChessClient {
 
         if(state == State.LOGGED_OUT) {
             return "Login/Register >>> ";
+        } else if(state == State.CONFIRM) {
+            return "Are you sure (yes[y]/no[n])? >>> ";
         } else {
             return "Chess >>> ";
         }
@@ -80,7 +94,18 @@ public class ChessClient {
                     throw new Exception(String.format("Error: %s is not a valid command", String.join(" ", tokens)));
                 }
             } else if(state == State.IN_GAME) {
-                if(!tokens[0].equals("leave")) {
+                if(!tokens[0].equals("leave")
+                && !tokens[0].equals("resign")
+                && !tokens[0].equals("move")
+                && !tokens[0].equals("highlight")
+                && !tokens[0].equals("redraw")) {
+                    throw new Exception(String.format("Error: %s is not a valid command", String.join(" ", tokens)));
+                }
+            } else if(state == State.CONFIRM) {
+                if(!tokens[0].equals("y")
+                && !tokens[0].equals("yes")
+                && !tokens[0].equals("n")
+                && !tokens[0].equals("no")) {
                     throw new Exception(String.format("Error: %s is not a valid command", String.join(" ", tokens)));
                 }
             } else {
@@ -119,6 +144,7 @@ public class ChessClient {
             try {
                 LoginResult login = serverFacade.login(new LoginRequest(params[0], params[1]));
                 curAuthToken = login.getAuthToken();
+                prevState = state;
                 state = State.LOGGED_IN;
                 return EscapeSequences.SET_TEXT_ITALIC + "Successfully logged in " + params[0] + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(Exception e) {
@@ -134,6 +160,7 @@ public class ChessClient {
             try {
                 RegisterResult register = serverFacade.register(new RegisterRequest(params[0], params[1], params[2]));
                 curAuthToken = register.getAuthToken();
+                prevState = state;
                 state = State.LOGGED_IN;
                 return EscapeSequences.SET_TEXT_ITALIC + "Successfully registered " + params[0] + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(Exception e) {
@@ -146,6 +173,7 @@ public class ChessClient {
         try {
             serverFacade.logout(new LogoutRequest(curAuthToken));
             curAuthToken = "";
+            prevState = state;
             state = State.LOGGED_OUT;
             return EscapeSequences.SET_TEXT_ITALIC + "Successfully logged out" + EscapeSequences.RESET_TEXT_ITALIC;
         } catch(Exception e) {
@@ -198,6 +226,7 @@ public class ChessClient {
                 JoinGameResult join = serverFacade.joinGame(new JoinGameRequest(curAuthToken, color, params[0]));
                 currentGame = join.getGameData();
                 currentColor = color;
+                prevState = state;
                 state = State.IN_GAME;
                 return EscapeSequences.SET_TEXT_ITALIC + "Successfully joined game" + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(Exception e) {
@@ -215,7 +244,8 @@ public class ChessClient {
                 GameData game = list.getGameList().get(Integer.parseInt(params[0])-1);
                 currentGame = game;
                 currentColor = "WHITE";
-                state = State.IN_GAME; // temporary state
+                prevState = state;
+                state = State.OBSERVING; // temporary state
                 return EscapeSequences.SET_TEXT_ITALIC + "Observing game" + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(Exception e) {
                 throw new Exception("Error: Couldn't observe game");
@@ -226,7 +256,69 @@ public class ChessClient {
     private String leave() {
         currentColor = "";
         currentGame = null;
+        prevState = state;
         state = State.LOGGED_IN;
         return EscapeSequences.SET_TEXT_ITALIC + "Left game" + EscapeSequences.RESET_TEXT_ITALIC;
+    }
+
+    private String move(String... params) throws Exception {
+        if(params.length != 2) {
+            throw new Exception("Error: Invalid number of arguments - Usage: move <from space> <to space>");
+        } else {
+            try {
+                ChessGame game = currentGame.getChessGame();
+                ChessMove moveToMake = parseMove(params[0], params[1], game);
+                game.makeMove(moveToMake);
+                // TODO: use ws to make move from current game
+                return EscapeSequences.SET_TEXT_ITALIC + "Successfully made move" + EscapeSequences.RESET_TEXT_ITALIC;
+            } catch(Exception e) {
+                throw new Exception("Error: Couldn't make move");
+            }
+        }
+    }
+
+    private String redraw() { // TODO: use ws to redraw
+        return "Not implemented";
+    }
+
+    private String resign() {
+        state = State.CONFIRM;
+        toConfirm = "resign";
+        return "";
+    }
+
+    private String highlightMoves(String... params) {
+        return "Not implemented";
+    }
+
+    private ChessMove parseMove(String from, String to, ChessGame game) throws Exception {
+        ChessPosition startPosition = parsePosition(from);
+        ChessPosition endPosition = parsePosition(to);
+        ChessPiece targetPiece = game.getBoard().getPiece(startPosition);
+        Collection<ChessMove> validMoves = targetPiece.pieceMoves(game.getBoard(), startPosition);
+        for(ChessMove toTest : validMoves) {
+            if(toTest.getStartPosition().equals(startPosition) && toTest.getEndPosition().equals(endPosition)) {
+                return toTest;
+            }
+        }
+        return null;
+    }
+
+    private ChessPosition parsePosition(String pos) throws Exception {
+        if(pos.length() == 2 && pos.charAt(0) <= 'h' && pos.charAt(0) >= 'a' && pos.charAt(1) <= '8' && pos.charAt(1) >= '1') {
+            int col = (int)(pos.charAt(0) - 'a') + 1;
+            int row = Integer.parseInt(pos.substring(1));
+            return new ChessPosition(row, col);
+        } else {
+            throw new Exception("Error: invalid position format");
+        }
+    }
+
+    private void evalConfirm(String command) {
+        if(command.contains("y")) {
+
+        } else {
+
+        }
     }
 }
