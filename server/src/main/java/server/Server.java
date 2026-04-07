@@ -32,8 +32,9 @@ public class Server {
     private final Javalin javalin;
 
     public Server() {
-        service = new ChessService(new SQLDataAccess());
-        wsHandler = new WebSocketHandler();
+        SQLDataAccess dataAccess = new SQLDataAccess();
+        service = new ChessService(dataAccess);
+        wsHandler = new WebSocketHandler(dataAccess);
         gson = new Gson();
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 

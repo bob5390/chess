@@ -1,14 +1,30 @@
 package server.websocket;
 
+import java.util.HashMap;
+import java.util.Set;
+
+import org.eclipse.jetty.websocket.api.Session;
+
+import com.google.gson.Gson;
+
+import dataaccess.DataAccess;
+import io.javalin.http.UnauthorizedResponse;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsCloseHandler;
 import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsConnectHandler;
 import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
+import websocket.commands.MoveCommand;
+import websocket.commands.UserGameCommand;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
-    // TODO: have some sort of connection set up; track sessions in a map related to the logged in user (possibly through auth tokens)
+    HashMap<Integer, Set<Session>> connections = new HashMap<Integer, Set<Session>>();
+    DataAccess dbAccess;
+
+    public WebSocketHandler(DataAccess dataAccess) {
+        this.dbAccess = dataAccess;
+    }
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
@@ -17,21 +33,46 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     @Override
-    public void handleMessage(WsMessageContext ctx) { // TODO: fill this in
-        
-        // try {
-        //     Action action = new Gson().fromJson(ctx.message(), Action.class);
-        //     switch (action.type()) {
-        //         case ENTER -> enter(action.visitorName(), ctx.session);
-        //         case EXIT -> exit(action.visitorName(), ctx.session);
-        //     }
-        // } catch (IOException ex) {
-        //     ex.printStackTrace();
-        // }
+    public void handleMessage(WsMessageContext ctx) {
+        Session session = ctx.session;
+
+        try {
+            UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
+            String authToken = command.getAuthToken();
+            String username = dbAccess.getAuth(authToken).getUsername();
+
+            switch (command.getCommandType()) {
+                case CONNECT -> connect(session, username, command);
+                case MAKE_MOVE -> makeMove(session, username, new Gson().fromJson(ctx.message(), MoveCommand.class));
+                case LEAVE -> leaveGame(session, username, command);
+                case RESIGN -> resign(session, username, command);
+            }
+        } catch(UnauthorizedResponse ex) { // TODO: finish this error handling
+            ex.printStackTrace();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void handleClose(WsCloseContext ctx) {
         System.out.println("Websocket closed");
+    }
+
+    // TODO: finish these functions
+    private void connect(Session session, String username, UserGameCommand command) {
+        connections.get(command.getGameID()).add(session);
+    }
+
+    private void makeMove(Session session, String username, MoveCommand command) {
+
+    }
+
+    private void leaveGame(Session session, String username, UserGameCommand command) {
+        connections.get(command.getGameID()).remove(session);
+    }
+
+    private void resign(Session session, String username, UserGameCommand command) {
+        connections.get(command.getGameID()).remove(session);
     }
 }
