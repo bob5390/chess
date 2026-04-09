@@ -16,6 +16,7 @@ import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsConnectHandler;
 import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
+import model.GameData;
 import websocket.commands.ConnectCommand;
 import websocket.commands.MoveCommand;
 import websocket.commands.UserGameCommand;
@@ -85,7 +86,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void makeMove(Session session, String username, MoveCommand command) {
-
+        GameData gameData = dbAccess.getGame(command.getGameID().toString());
+        // TODO: finish this method
     }
 
     private void leaveGame(Session session, String username, UserGameCommand command) {
