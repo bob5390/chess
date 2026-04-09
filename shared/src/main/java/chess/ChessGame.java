@@ -16,6 +16,7 @@ public class ChessGame {
     private boolean[] whiteCanCastle = {true, true};
     private boolean[] blackCanCastle = {true, true};
     private ChessMove lastMove = null;
+    private boolean gameOver = false;
 
     public ChessGame() {
         board.resetBoard();
@@ -140,7 +141,7 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPosition startPosition = move.getStartPosition();
         ChessPiece targetPiece = board.getPiece(startPosition);
-        if(targetPiece != null && targetPiece.getTeamColor() == currentTurn && validMoves(move.getStartPosition()).contains(move)) {
+        if(!gameOver && targetPiece != null && targetPiece.getTeamColor() == currentTurn && validMoves(move.getStartPosition()).contains(move)) {
 
             if(targetPiece.getPieceType() == ChessPiece.PieceType.KING) { // check for castling
                 if(currentTurn == ChessGame.TeamColor.WHITE) {
@@ -385,6 +386,10 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return board;
+    }
+
+    public void setGameOver(boolean gameOver) {
+        this.gameOver = gameOver;
     }
 
     @Override
