@@ -1,9 +1,12 @@
 package client;
 
 public class ClientMain {
-    private static final Repl CLIENT = new Repl("http://localhost:8080");
-
     public static void main(String[] args) {
-        CLIENT.run();
+        try {
+            new Repl("http://localhost:8080").run();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.printf("Unable to start server: %s\n", e.getMessage());
+        }
     }
 }

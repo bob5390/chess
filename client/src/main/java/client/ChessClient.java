@@ -3,6 +3,8 @@ package client;
 import java.util.Arrays;
 import java.util.Collection;
 
+import com.google.gson.Gson;
+
 import chess.ChessGame;
 import chess.ChessMove;
 import chess.ChessPiece;
@@ -19,10 +21,17 @@ import results.ListGamesResult;
 import results.LoginResult;
 import results.RegisterResult;
 import server.ServerFacade;
+import server.ServerMessageObserver;
+import server.WebSocketFacade;
 import ui.EscapeSequences;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
-public class ChessClient {
+public class ChessClient implements ServerMessageObserver {
     private final ServerFacade serverFacade;
+    private final WebSocketFacade webSocketFacade;
     private enum State {LOGGED_OUT, LOGGED_IN, IN_GAME, CONFIRM, OBSERVING};
     private State state = State.LOGGED_OUT;
     public static final String QUIT_MESSAGE = "Goodbye!";
@@ -32,8 +41,9 @@ public class ChessClient {
     private String currentColor = "";
     private String toConfirm = "";
 
-    public ChessClient(String serverUrl) {
+    public ChessClient(String serverUrl) throws Exception {
         serverFacade = new ServerFacade(serverUrl);
+        webSocketFacade = new WebSocketFacade(serverUrl, this);
     }
 
     public String eval(String prompt) {
@@ -71,9 +81,7 @@ public class ChessClient {
 
     public String curPrompt() {
         if(state == State.IN_GAME) {
-            System.out.println(EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT);
-            boardDrawer.setBoard(currentGame.getChessGame().getBoard());
-            boardDrawer.drawBoard(currentColor);
+            redraw();
         }
 
         if(state == State.LOGGED_OUT) {
@@ -274,7 +282,10 @@ public class ChessClient {
     }
 
     private String redraw() { // TODO: use ws to redraw
-        return "Not implemented";
+        System.out.println(EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT);
+        boardDrawer.setBoard(currentGame.getChessGame().getBoard());
+        boardDrawer.drawBoard(currentColor);
+        return "";
     }
 
     private String resign() {
@@ -315,6 +326,39 @@ public class ChessClient {
             // resign from the game
         } else {
             state = State.IN_GAME;
+        }
+    }
+
+    private void handleMessage(String messageString) {
+        try {
+            ServerMessage message = new Gson().fromJson(messageString, ServerMessage.class);
+            notify(message);
+        } catch(Exception ex) {
+            notify(new ErrorMessage(ex.getMessage()));
+        }
+    }
+
+    private void displayNotification(String message) {
+        System.out.println(EscapeSequences.SET_TEXT_ITALIC + message + EscapeSequences.RESET_TEXT_ITALIC);
+    }
+
+    private void displayError(String errorMessage) {
+        System.out.print(EscapeSequences.SET_TEXT_COLOR_RED + EscapeSequences.SET_TEXT_BOLD + errorMessage +
+                         EscapeSequences.RESET_TEXT_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT);
+    }
+
+    private void loadGame(ChessGame toLoad) {
+        currentGame.setGame(toLoad);
+        if(state != State.IN_GAME) { redraw(); }
+        curPrompt();
+    }
+
+    @Override
+    public void notify(ServerMessage message) {
+        switch (message.getServerMessageType()) {
+            case NOTIFICATION -> displayNotification(((NotificationMessage) message).getMessage());
+            case ERROR -> displayError(((ErrorMessage)message).getErrorMessage());
+            case LOAD_GAME -> loadGame(((LoadGameMessage)message).getGame());
         }
     }
 }

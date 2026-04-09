@@ -7,7 +7,7 @@ import ui.EscapeSequences;
 public class Repl {
     private ChessClient client;
 
-    public Repl(String serverUrl) {
+    public Repl(String serverUrl) throws Exception {
         client = new ChessClient(serverUrl);
     }
 

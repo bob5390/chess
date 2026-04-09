@@ -24,6 +24,7 @@ public class GameData {
     public void setGameID(String gameID) { this.gameID = gameID; }
     public void setBlackUsername(String username) { blackUsername = username; }
     public void setWhiteUsername(String username) { whiteUsername = username; }
+    public void setGame(ChessGame game) { chessGame = game; } 
 
     public String getGameID() { return gameID; }
     public String getBlackUsername() { return blackUsername; }
