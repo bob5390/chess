@@ -1,5 +1,6 @@
 package server.websocket;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -15,8 +16,10 @@ import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsConnectHandler;
 import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
+import websocket.commands.ConnectCommand;
 import websocket.commands.MoveCommand;
 import websocket.commands.UserGameCommand;
+import websocket.commands.UserGameCommand.CommandType;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
     HashMap<Integer, Set<Session>> connections = new HashMap<Integer, Set<Session>>();
@@ -42,7 +45,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             String username = dbAccess.getAuth(authToken).getUsername();
 
             switch (command.getCommandType()) {
-                case CONNECT -> connect(session, username, command);
+                case CONNECT -> connect(session, username, (ConnectCommand)command);
                 case MAKE_MOVE -> makeMove(session, username, new Gson().fromJson(ctx.message(), MoveCommand.class));
                 case LEAVE -> leaveGame(session, username, command);
                 case RESIGN -> resign(session, username, command);
@@ -59,9 +62,26 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         System.out.println("Websocket closed");
     }
 
+    private void notifySessions(Integer gameID, Session toExclude, String message) throws IOException {
+        for(Session s : connections.get(gameID)) {
+            if(s.isOpen()) {
+                if(!s.equals(toExclude)) {
+                    s.getRemote().sendString(message);
+                }
+            }
+        }
+    }
+
     // TODO: finish these functions
-    private void connect(Session session, String username, UserGameCommand command) {
+    private void connect(Session session, String username, ConnectCommand command) throws IOException {
+        String message = "";
+        if(command.getColor().equals("observer")) {
+            message = String.format("%s joined the game as an observer", username);
+        } else {
+            message = String.format("%s joined the game as %s", username, command.getColor());
+        }
         connections.get(command.getGameID()).add(session);
+        notifySessions(command.getGameID(), session, message);
     }
 
     private void makeMove(Session session, String username, MoveCommand command) {

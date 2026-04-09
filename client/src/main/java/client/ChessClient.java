@@ -38,10 +38,12 @@ public class ChessClient implements ServerMessageObserver {
     private BoardDrawer boardDrawer = new BoardDrawer();
     private String currentColor = "";
     private String toConfirm = "";
+    private String serverUrl = "";
 
     public ChessClient(String serverUrl) throws Exception {
+        this.serverUrl = serverUrl;
         serverFacade = new ServerFacade(serverUrl);
-        webSocketFacade = new WebSocketFacade(serverUrl, this);
+        webSocketFacade = new WebSocketFacade();
     }
 
     public String eval(String prompt) {
@@ -231,6 +233,7 @@ public class ChessClient implements ServerMessageObserver {
                 JoinGameResult join = serverFacade.joinGame(new JoinGameRequest(curAuthToken, color, params[0]));
                 currentGame = join.getGameData();
                 currentColor = color;
+                webSocketFacade.connect(serverUrl, this, curAuthToken, color.toLowerCase(), Integer.parseInt(params[0]));
                 state = State.IN_GAME;
                 return EscapeSequences.SET_TEXT_ITALIC + "Successfully joined game" + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(Exception e) {
@@ -248,6 +251,7 @@ public class ChessClient implements ServerMessageObserver {
                 GameData game = list.getGameList().get(Integer.parseInt(params[0])-1);
                 currentGame = game;
                 currentColor = "WHITE";
+                webSocketFacade.connect(serverUrl, this, curAuthToken, "observer", Integer.parseInt(params[0]));
                 state = State.OBSERVING; // temporary state
                 return EscapeSequences.SET_TEXT_ITALIC + "Observing game" + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(Exception e) {
