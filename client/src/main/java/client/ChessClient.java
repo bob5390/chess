@@ -3,8 +3,6 @@ package client;
 import java.util.Arrays;
 import java.util.Collection;
 
-import com.google.gson.Gson;
-
 import chess.ChessGame;
 import chess.ChessMove;
 import chess.ChessPiece;
@@ -273,7 +271,7 @@ public class ChessClient implements ServerMessageObserver {
                 ChessGame game = currentGame.getChessGame();
                 ChessMove moveToMake = parseMove(params[0], params[1], game);
                 game.makeMove(moveToMake);
-                // TODO: use ws to make move from current game
+                webSocketFacade.makeMove(moveToMake);
                 return EscapeSequences.SET_TEXT_ITALIC + "Successfully made move" + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(Exception e) {
                 throw new Exception("Error: Couldn't make move");
@@ -281,7 +279,7 @@ public class ChessClient implements ServerMessageObserver {
         }
     }
 
-    private String redraw() { // TODO: use ws to redraw
+    private String redraw() {
         System.out.println(EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT);
         boardDrawer.setBoard(currentGame.getChessGame().getBoard());
         boardDrawer.drawBoard(currentColor);
@@ -326,15 +324,6 @@ public class ChessClient implements ServerMessageObserver {
             // resign from the game
         } else {
             state = State.IN_GAME;
-        }
-    }
-
-    private void handleMessage(String messageString) {
-        try {
-            ServerMessage message = new Gson().fromJson(messageString, ServerMessage.class);
-            notify(message);
-        } catch(Exception ex) {
-            notify(new ErrorMessage(ex.getMessage()));
         }
     }
 

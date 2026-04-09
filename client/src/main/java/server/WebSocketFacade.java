@@ -1,10 +1,13 @@
 package server;
 
+import java.io.IOException;
 import java.net.URI;
 
 import com.google.gson.Gson;
 
+import chess.ChessMove;
 import jakarta.websocket.*;
+import websocket.commands.MoveCommand;
 import websocket.messages.ServerMessage;
 
 public class WebSocketFacade extends Endpoint {
@@ -36,4 +39,13 @@ public class WebSocketFacade extends Endpoint {
     @Override
     public void onOpen(Session session, EndpointConfig config) {}
     
+    public void makeMove(ChessMove move) throws Exception {
+        MoveCommand command = new MoveCommand(move);
+        try {
+            session.getBasicRemote().sendText(new Gson().toJson(command));
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new Exception("Error: " + e.getMessage());
+        }
+    }
 }
