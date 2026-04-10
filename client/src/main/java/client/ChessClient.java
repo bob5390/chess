@@ -1,5 +1,6 @@
 package client;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -323,9 +324,11 @@ public class ChessClient implements ServerMessageObserver {
         }
     }
 
-    private void evalConfirm(String command) {
+    private void evalConfirm(String command) throws NumberFormatException, IOException {
         if(command.contains("y")) {
-            // resign from the game
+            if(toConfirm.equals("resign")) {
+                webSocketFacade.resign(curAuthToken, Integer.parseInt(currentGame.getGameID()));
+            }
         } else {
             state = State.IN_GAME;
         }
@@ -333,11 +336,13 @@ public class ChessClient implements ServerMessageObserver {
 
     private void displayNotification(String message) {
         System.out.println(EscapeSequences.SET_TEXT_ITALIC + message + EscapeSequences.RESET_TEXT_ITALIC);
+        curPrompt();
     }
 
     private void displayError(String errorMessage) {
         System.out.print(EscapeSequences.SET_TEXT_COLOR_RED + EscapeSequences.SET_TEXT_BOLD + errorMessage +
                          EscapeSequences.RESET_TEXT_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT);
+        curPrompt();
     }
 
     private void loadGame(ChessGame toLoad) {

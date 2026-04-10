@@ -10,12 +10,12 @@ import jakarta.websocket.*;
 import websocket.commands.ConnectCommand;
 import websocket.commands.MoveCommand;
 import websocket.commands.UserGameCommand;
-import websocket.commands.UserGameCommand.CommandType;
 import websocket.messages.ServerMessage;
 
 public class WebSocketFacade extends Endpoint {
-    Session session;
+    private Session session;
     ServerMessageObserver listener;
+    private Gson gson = new Gson();
 
     public WebSocketFacade() {
         this.session = null;
@@ -35,7 +35,7 @@ public class WebSocketFacade extends Endpoint {
             this.session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
-                    ServerMessage notification = new Gson().fromJson(message, ServerMessage.class);
+                    ServerMessage notification = gson.fromJson(message, ServerMessage.class);
                     listener.notify(notification);
                 }
             });
@@ -50,7 +50,7 @@ public class WebSocketFacade extends Endpoint {
     public void makeMove(ChessMove move) throws Exception {
         MoveCommand command = new MoveCommand(move);
         try {
-            session.getBasicRemote().sendText(new Gson().toJson(command));
+            session.getBasicRemote().sendText(gson.toJson(command));
         } catch (IOException e) {
             e.printStackTrace();
             throw new Exception("Error: " + e.getMessage());
@@ -73,15 +73,22 @@ public class WebSocketFacade extends Endpoint {
             session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
-                    ServerMessage notification = new Gson().fromJson(message, ServerMessage.class);
+                    ServerMessage notification = gson.fromJson(message, ServerMessage.class);
                     listener.notify(notification);
                 }
             });
 
             ConnectCommand connectCommand = new ConnectCommand(authToken, gameID, color);
-            session.getBasicRemote().sendText(new Gson().toJson(connectCommand));
+            session.getBasicRemote().sendText(gson.toJson(connectCommand));
         } catch(Exception e) {
             throw new Exception("Error: " + e.getMessage());
         }
     }
+
+    public void resign(String authToken, Integer gameID) throws IOException {
+        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID);
+        session.getBasicRemote().sendText(gson.toJson(command));
+    }
+
+    
 }

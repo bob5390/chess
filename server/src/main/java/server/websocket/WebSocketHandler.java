@@ -82,6 +82,11 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void connect(Session session, String username, ConnectCommand command) throws IOException {
+        GameData gameData = dbAccess.getGame(command.getGameID().toString());
+        ChessGame game = gameData.getChessGame();
+        LoadGameMessage loadGameMessage = new LoadGameMessage(game);
+        session.getRemote().sendString(gson.toJson(loadGameMessage));
+
         String message = "";
         if(command.getColor().equals("observer")) {
             message = String.format("%s joined the game as an observer", username);

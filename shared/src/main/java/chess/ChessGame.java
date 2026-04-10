@@ -139,9 +139,12 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        if(gameOver) {
+            throw new InvalidMoveException("Error: Game is over!");
+        }
         ChessPosition startPosition = move.getStartPosition();
         ChessPiece targetPiece = board.getPiece(startPosition);
-        if(!gameOver && targetPiece != null && targetPiece.getTeamColor() == currentTurn && validMoves(move.getStartPosition()).contains(move)) {
+        if(targetPiece != null && targetPiece.getTeamColor() == currentTurn && validMoves(move.getStartPosition()).contains(move)) {
 
             if(targetPiece.getPieceType() == ChessPiece.PieceType.KING) { // check for castling
                 if(currentTurn == ChessGame.TeamColor.WHITE) {
