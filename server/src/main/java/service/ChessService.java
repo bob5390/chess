@@ -113,7 +113,6 @@ public class ChessService {
                         gameData = dbAccess.joinGame(gameData, userData, req.getTeamColor());
                         if(gameData.getBlackUsername() != null && gameData.getWhiteUsername() != null) {
                             ChessGame game = gameData.getChessGame();
-                            game.setGameStarted(true);
                             gameData.setGame(game);
                             gameData = dbAccess.updateGame(gameData);
                         }

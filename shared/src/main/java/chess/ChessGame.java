@@ -17,7 +17,7 @@ public class ChessGame {
     private boolean[] blackCanCastle = {true, true};
     private ChessMove lastMove = null;
     private boolean gameOver = false;
-    private boolean gameStarted = false;
+    // private boolean gameStarted = false;
 
     public ChessGame() {
         board.resetBoard();
@@ -143,9 +143,9 @@ public class ChessGame {
         if(gameOver) {
             throw new InvalidMoveException("Error: Game is over!");
         }
-        if(!gameStarted) {
-            throw new InvalidMoveException("Error: Game has not started yet!");
-        }
+        // if(!gameStarted) {
+        //     throw new InvalidMoveException("Error: Game has not started yet!");
+        // }
         ChessPosition startPosition = move.getStartPosition();
         ChessPiece targetPiece = board.getPiece(startPosition);
         if(targetPiece != null && targetPiece.getTeamColor() == currentTurn && validMoves(move.getStartPosition()).contains(move)) {
@@ -399,16 +399,8 @@ public class ChessGame {
         this.gameOver = gameOver;
     }
 
-    public void setGameStarted(boolean gameStarted) {
-        this.gameStarted = gameStarted;
-    }
-
     public boolean isGameOver() {
         return gameOver;
-    }
-
-    public boolean isGameStarted() {
-        return gameStarted;
     }
 
     @Override

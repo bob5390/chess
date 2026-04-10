@@ -361,11 +361,6 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     private void displayNotification(String message) {
-        if(message.contains("joined the game as black") || message.contains("joined the game as white")) {
-            if(currentGame != null && !currentGame.isGameOver() && !currentGame.isGameStarted()) {
-                currentGame.setGameStarted(true);
-            }
-        }
         System.out.println("\n" + EscapeSequences.SET_TEXT_ITALIC + EscapeSequences.SET_TEXT_COLOR_BLUE 
                             + message + EscapeSequences.RESET_TEXT_ITALIC + EscapeSequences.RESET_TEXT_COLOR);
         System.out.print("\n\n" + EscapeSequences.SET_TEXT_FAINT + curPrompt() + EscapeSequences.RESET_TEXT_BOLD_FAINT);

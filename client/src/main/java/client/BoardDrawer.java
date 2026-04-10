@@ -3,7 +3,6 @@ package client;
 import java.util.Collection;
 
 import chess.ChessBoard;
-import chess.ChessMove;
 import chess.ChessPosition;
 import ui.EscapeSequences;
 
