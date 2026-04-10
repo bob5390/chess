@@ -123,6 +123,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             throw new Exception("Error: Couldn't find game data. Is the game ID correct?");
         }
         ChessGame game = gameData.getChessGame();
+        if(game.getTeamTurn().toString().equals("WHITE")) {
+            if(!gameData.getWhiteUsername().equals(username)) {
+                throw new Exception("Error: Cannot make move for other team");
+            }
+        } else {
+            if(!gameData.getBlackUsername().equals(username)) {
+                throw new Exception("Error: Cannot make move for other team");
+            }
+        }
         if(!game.validMoves(command.getMove().getStartPosition()).contains(command.getMove())) {
             throw new Exception("Error: Move is invalid, cannot make move");
         } else {
@@ -137,7 +146,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
             ChessGame.TeamColor currentTurn = game.getTeamTurn();
             String currentPlayer = (gameData.getWhiteUsername().equals(username))? gameData.getBlackUsername():gameData.getWhiteUsername();
-            if(game.isInCheckmate(currentTurn)) { // TODO: may have to end the game somehow here
+            if(game.isInCheckmate(currentTurn)) {
                 message = String.format("%s is in checkmate", currentPlayer);
                 game.setGameOver(true);
                 gameData.setGame(game);
