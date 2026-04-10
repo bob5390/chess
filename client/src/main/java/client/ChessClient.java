@@ -1,6 +1,7 @@
 package client;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -23,6 +24,7 @@ import server.ServerFacade;
 import server.ServerMessageObserver;
 import server.WebSocketFacade;
 import ui.EscapeSequences;
+import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
@@ -104,7 +106,7 @@ public class ChessClient implements ServerMessageObserver {
                 && !tokens[0].equals("observe")) {
                     throw new Exception(String.format("Error: %s is not a valid command", String.join(" ", tokens)));
                 }
-            } else if(state == State.IN_GAME) {
+            } else if(state == State.IN_GAME || state == State.OBSERVING) {
                 if(!tokens[0].equals("leave")
                 && !tokens[0].equals("resign")
                 && !tokens[0].equals("move")
@@ -135,7 +137,15 @@ public class ChessClient implements ServerMessageObserver {
                 + EscapeSequences.RESET_TEXT_ITALIC;
         } else if(state == State.IN_GAME) {
             return EscapeSequences.SET_TEXT_ITALIC
-                + "  help\n  leave\n  quit"
+                + "  help\n  highlight <square>\n  leave\n  move <from> <to>\n  redraw\n  resign"
+                + EscapeSequences.RESET_TEXT_ITALIC;
+        } else if(state == State.CONFIRM) {
+            return EscapeSequences.SET_TEXT_ITALIC
+                + "  help\n  yes|y\n  no|n"
+                + EscapeSequences.RESET_TEXT_ITALIC;
+        } else if(state == State.OBSERVING) {
+            return EscapeSequences.SET_TEXT_ITALIC
+                + "  help\n  highlight <square>\n  leave\n  redraw"
                 + EscapeSequences.RESET_TEXT_ITALIC;
         } else {
             return EscapeSequences.SET_TEXT_ITALIC 
@@ -253,7 +263,7 @@ public class ChessClient implements ServerMessageObserver {
                 currentGame = game;
                 currentColor = "WHITE";
                 webSocketFacade.connect(serverUrl, this, curAuthToken, "observer", Integer.parseInt(params[0]));
-                state = State.OBSERVING; // temporary state
+                state = State.OBSERVING;
                 return EscapeSequences.SET_TEXT_ITALIC + "Observing game" + EscapeSequences.RESET_TEXT_ITALIC;
             } catch(Exception e) {
                 throw new Exception("Error: Couldn't observe game");
@@ -261,7 +271,9 @@ public class ChessClient implements ServerMessageObserver {
         }
     }
 
-    private String leave() {
+    private String leave() throws Exception {
+        webSocketFacade.leave(curAuthToken, Integer.parseInt(currentGame.getGameID()));
+
         currentColor = "";
         currentGame = null;
         state = State.LOGGED_IN;
@@ -291,14 +303,32 @@ public class ChessClient implements ServerMessageObserver {
         return "";
     }
 
+    private String redraw(Collection<ChessMove> toHighlight) {
+        System.out.println(EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT);
+        boardDrawer.setBoard(currentGame.getChessGame().getBoard());
+        
+        Collection<ChessPosition> positions = new ArrayList<ChessPosition>();
+        for(ChessMove m : toHighlight) {
+            positions.add(m.getEndPosition());
+        }
+
+        boardDrawer.drawBoard(currentColor, positions);
+        return "";
+    }
+
     private String resign() {
         state = State.CONFIRM;
         toConfirm = "resign";
         return "";
     }
 
-    private String highlightMoves(String... params) {
-        return "Not implemented";
+    private String highlightMoves(String... params) throws Exception {
+        if(params.length != 1) {
+            throw new Exception("Error: Invalid number of arguments - Usage: highlight <square>");
+        }
+        ChessPosition targetSquare = parsePosition(params[0]);
+        Collection<ChessMove> potentialMoves = currentGame.getChessGame().validMoves(targetSquare);
+        return redraw(potentialMoves);
     }
 
     private ChessMove parseMove(String from, String to, ChessGame game) throws Exception {
