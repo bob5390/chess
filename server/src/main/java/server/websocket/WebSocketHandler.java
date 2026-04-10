@@ -10,6 +10,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import com.google.gson.Gson;
 
 import chess.ChessGame;
+import chess.ChessPiece;
 import chess.InvalidMoveException;
 import dataaccess.DataAccess;
 import io.javalin.http.HttpResponseException;
@@ -85,6 +86,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void connect(Session session, String username, ConnectCommand command) throws Exception {
+        if(command.getColor() == null) {
+            throw new Exception("Error: Cannot connect to game, color not given.");
+        } else if(!command.getColor().equals("observer") && !command.getColor().equals("white") && !command.getColor().equals("black")) {
+            throw new Exception("Error: Cannot connect to game, color provided is not valid");
+        }
+
         GameData gameData = dbAccess.getGame(command.getGameID().toString());
         if(gameData == null) {
             throw new Exception("Error: Couldn't find game data. Is the game ID correct?");
@@ -110,12 +117,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         notifySessions(command.getGameID(), session, gson.toJson(notification));
     }
 
-    private void makeMove(Session session, String username, MoveCommand command) throws IOException, InvalidMoveException, HttpResponseException {
+    private void makeMove(Session session, String username, MoveCommand command) throws Exception {
         GameData gameData = dbAccess.getGame(command.getGameID().toString());
+        if(gameData == null) {
+            throw new Exception("Error: Couldn't find game data. Is the game ID correct?");
+        }
         ChessGame game = gameData.getChessGame();
         if(!game.validMoves(command.getMove().getStartPosition()).contains(command.getMove())) {
-            ErrorMessage errorMessage = new ErrorMessage("Error: Move is invalid, cannot make move");
-            session.getRemote().sendString(gson.toJson(errorMessage));
+            throw new Exception("Error: Move is invalid, cannot make move");
         } else {
             game.makeMove(command.getMove());
             gameData.setGame(game);
@@ -148,11 +157,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private void leaveGame(Session session, String username, UserGameCommand command) throws IOException, HttpResponseException {
+    private void leaveGame(Session session, String username, UserGameCommand command) throws Exception {
         GameData gameData = dbAccess.getGame(command.getGameID().toString());
-        if(gameData.getBlackUsername().equals(username)) {
+        if(gameData == null) {
+            throw new Exception("Error: Couldn't find game data. Is the game ID correct?");
+        }
+        if(gameData.getBlackUsername() != null && gameData.getBlackUsername().equals(username)) {
             gameData.setBlackUsername(null);
-        } else if(gameData.getWhiteUsername().equals(username)) {
+        } else if(gameData.getWhiteUsername() != null && gameData.getWhiteUsername().equals(username)) {
             gameData.setWhiteUsername(null);
         } // otherwise it is an observer - no game data update to do
         dbAccess.updateGame(gameData);
@@ -163,8 +175,11 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         session.close();
     }
 
-    private void resign(Session session, String username, UserGameCommand command) throws IOException {
+    private void resign(Session session, String username, UserGameCommand command) throws Exception {
         GameData gameData = dbAccess.getGame(command.getGameID().toString());
+        if(gameData == null) {
+            throw new Exception("Error: Couldn't find game data. Is the game ID correct?");
+        }
         ChessGame game = gameData.getChessGame();
         game.setGameOver(true);
         gameData.setGame(game);

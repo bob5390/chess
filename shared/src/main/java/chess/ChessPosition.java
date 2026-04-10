@@ -9,11 +9,11 @@ package chess;
 public class ChessPosition {
 
     private final int row;
-    private final int col;
+    private final int column;
 
     public ChessPosition(int row, int col) {
         this.row = row;
-        this.col = col;
+        this.column = col;
     }
 
     /**
@@ -29,7 +29,7 @@ public class ChessPosition {
      * 1 codes for the left row
      */
     public int getColumn() {
-        return col;
+        return column;
     }
 
     public static boolean validPosition(ChessPosition position) {
@@ -38,7 +38,7 @@ public class ChessPosition {
 
     @Override
     public String toString() {
-        return String.format("%c%d", 'a' + col - 1, row);
+        return String.format("%c%d", 'a' + column - 1, row);
     }
 
     @Override
@@ -47,11 +47,11 @@ public class ChessPosition {
         if (obj == null || getClass() != obj.getClass()) { return false; }
         
         ChessPosition toTest = (ChessPosition) obj;
-        return hashCode() == toTest.hashCode() && row == toTest.row && col == toTest.col;
+        return hashCode() == toTest.hashCode() && row == toTest.row && column == toTest.column;
     }
 
     @Override
     public int hashCode() {
-        return row * 31 + col;
+        return row * 31 + column;
     }
 }
