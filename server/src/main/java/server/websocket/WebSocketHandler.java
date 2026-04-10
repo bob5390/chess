@@ -2,6 +2,7 @@ package server.websocket;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.jetty.websocket.api.Session;
@@ -52,17 +53,19 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             String username = dbAccess.getAuth(authToken).getUsername();
 
             switch (command.getCommandType()) {
-                case CONNECT -> connect(session, username, (ConnectCommand)command);
+                case CONNECT -> connect(session, username, gson.fromJson(ctx.message(), ConnectCommand.class));
                 case MAKE_MOVE -> makeMove(session, username, gson.fromJson(ctx.message(), MoveCommand.class));
                 case LEAVE -> leaveGame(session, username, command);
                 case RESIGN -> resign(session, username, command);
             }
-        } catch(UnauthorizedResponse ex) { // TODO: finish this error handling
-            ex.printStackTrace();
-        } catch(HttpResponseException e) {
-            e.printStackTrace();
         } catch(Exception e) {
             e.printStackTrace();
+            ErrorMessage errorMessage = new ErrorMessage("Error: " + e.getMessage());
+            try {
+                session.getRemote().sendString(gson.toJson(errorMessage));
+            } catch (IOException e1) {
+                e1.printStackTrace(); // can't do much more with this error
+            }
         }
     }
 
@@ -81,8 +84,11 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private void connect(Session session, String username, ConnectCommand command) throws IOException {
+    private void connect(Session session, String username, ConnectCommand command) throws Exception {
         GameData gameData = dbAccess.getGame(command.getGameID().toString());
+        if(gameData == null) {
+            throw new Exception("Error: Couldn't find game data. Is the game ID correct?");
+        }
         ChessGame game = gameData.getChessGame();
         LoadGameMessage loadGameMessage = new LoadGameMessage(game);
         session.getRemote().sendString(gson.toJson(loadGameMessage));
@@ -94,7 +100,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             message = String.format("%s joined the game as %s", username, command.getColor());
         }
         NotificationMessage notification = new NotificationMessage(message);
-        connections.get(command.getGameID()).add(session);
+        if(connections.containsKey(command.getGameID())) {
+            connections.get(command.getGameID()).add(session);
+        } else {
+            Set<Session> toAdd = new HashSet<Session>();
+            toAdd.add(session);
+            connections.put(command.getGameID(), toAdd);
+        }
         notifySessions(command.getGameID(), session, gson.toJson(notification));
     }
 
