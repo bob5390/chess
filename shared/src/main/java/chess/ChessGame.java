@@ -402,9 +402,13 @@ public class ChessGame {
     public void setGameStarted(boolean gameStarted) {
         this.gameStarted = gameStarted;
     }
-    
+
     public boolean isGameOver() {
         return gameOver;
+    }
+
+    public boolean isGameStarted() {
+        return gameStarted;
     }
 
     @Override

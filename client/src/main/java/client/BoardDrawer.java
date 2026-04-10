@@ -19,11 +19,9 @@ public class BoardDrawer {
         if(color.equals("WHITE")) {
             for(int row = 9; row >= 0; row--) {
                 for(int col = 0; col < 10; col++) {
-                    if(row >= 1 && row <= 8 && col >= 1 && col <= 8) {
-                        ChessPosition curSquare = new ChessPosition(row, col);
-                        if(toHightlight.contains(curSquare)) {
-                            drawSquare(row, col, true);
-                        }
+                    ChessPosition curSquare = new ChessPosition(row, col);
+                    if(toHightlight != null && toHightlight.contains(curSquare)) {
+                        drawSquare(row, col, true);
                     } else {
                         drawSquare(row, col);
                     }
@@ -33,11 +31,9 @@ public class BoardDrawer {
         } else {
             for(int row = 0; row < 10; row++) {
                 for(int col = 9; col >= 0; col--) {
-                    if(row >= 1 && row <= 8 && col >= 1 && col <= 8) {
-                        ChessPosition curSquare = new ChessPosition(row, col);
-                        if(toHightlight.contains(curSquare)) {
-                            drawSquare(row, col, true);
-                        }
+                    ChessPosition curSquare = new ChessPosition(row, col);
+                    if(toHightlight != null && toHightlight.contains(curSquare)) {
+                        drawSquare(row, col, true);
                     } else {
                         drawSquare(row, col);
                     }
@@ -64,9 +60,9 @@ public class BoardDrawer {
                 if(highlight) {
                     System.out.print(EscapeSequences.SET_BG_COLOR_YELLOW);
                 } else if((row + col)%2 == 0) { // even summed spaces are black squares
-                    System.out.print(EscapeSequences.SET_BG_COLOR_DARK_BLUE);
+                    System.out.print(EscapeSequences.SET_BG_COLOR_LIGHT_BROWN);
                 } else { // odd summed spaces are white squares
-                    System.out.print(EscapeSequences.SET_BG_COLOR_LIGHT_BLUE);
+                    System.out.print(EscapeSequences.SET_BG_COLOR_TAN);
                 }
                 System.out.print(boardArray[row-1][col-1]);
             }

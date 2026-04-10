@@ -10,7 +10,6 @@ import jakarta.websocket.*;
 import websocket.commands.MoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.commands.UserGameCommand.CommandType;
-import websocket.messages.ServerMessage;
 
 public class WebSocketFacade extends Endpoint {
     private Session session;
@@ -35,8 +34,7 @@ public class WebSocketFacade extends Endpoint {
             this.session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
-                    ServerMessage notification = gson.fromJson(message, ServerMessage.class);
-                    listener.notify(notification);
+                    listener.notify(message);
                 }
             });
         } catch(Exception e) {
@@ -47,8 +45,8 @@ public class WebSocketFacade extends Endpoint {
     @Override
     public void onOpen(Session session, EndpointConfig config) {}
     
-    public void makeMove(ChessMove move) throws Exception {
-        MoveCommand command = new MoveCommand(move);
+    public void makeMove(String authToken, Integer gameID, ChessMove move) throws Exception {
+        MoveCommand command = new MoveCommand(authToken, gameID, move);
         try {
             session.getBasicRemote().sendText(gson.toJson(command));
         } catch (IOException e) {
@@ -73,8 +71,7 @@ public class WebSocketFacade extends Endpoint {
             session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
-                    ServerMessage notification = gson.fromJson(message, ServerMessage.class);
-                    listener.notify(notification);
+                    listener.notify(message);
                 }
             });
 

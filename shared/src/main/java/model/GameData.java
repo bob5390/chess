@@ -48,4 +48,16 @@ public class GameData {
     public String toString() {
         return String.format("%s. Game name: %s White: %s Black: %s", gameID, gameName, whiteUsername, blackUsername);
     }
+
+    public boolean isGameOver() {
+        return chessGame.isGameOver();
+    }
+
+    public boolean isGameStarted() {
+        return chessGame.isGameStarted();
+    }
+
+    public void setGameStarted(boolean b) {
+        chessGame.setGameStarted(b);
+    }
 }

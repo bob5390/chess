@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
+import com.google.gson.Gson;
+
 import chess.ChessGame;
 import chess.ChessMove;
 import chess.ChessPiece;
@@ -24,7 +26,6 @@ import server.ServerFacade;
 import server.ServerMessageObserver;
 import server.WebSocketFacade;
 import ui.EscapeSequences;
-import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
@@ -83,10 +84,6 @@ public class ChessClient implements ServerMessageObserver {
     }
 
     public String curPrompt() {
-        if(state == State.IN_GAME) {
-            redraw();
-        }
-
         if(state == State.LOGGED_OUT) {
             return "Login/Register >>> ";
         } else if(state == State.CONFIRM) {
@@ -288,8 +285,8 @@ public class ChessClient implements ServerMessageObserver {
                 ChessGame game = currentGame.getChessGame();
                 ChessMove moveToMake = parseMove(params[0], params[1], game);
                 game.makeMove(moveToMake);
-                webSocketFacade.makeMove(moveToMake);
-                return EscapeSequences.SET_TEXT_ITALIC + "Successfully made move" + EscapeSequences.RESET_TEXT_ITALIC;
+                webSocketFacade.makeMove(curAuthToken, Integer.parseInt(currentGame.getGameID()), moveToMake);
+                return "";
             } catch(Exception e) {
                 throw new Exception("Error: Couldn't make move");
             }
@@ -359,34 +356,40 @@ public class ChessClient implements ServerMessageObserver {
             if(toConfirm.equals("resign")) {
                 webSocketFacade.resign(curAuthToken, Integer.parseInt(currentGame.getGameID()));
             }
-        } else {
-            state = State.IN_GAME;
         }
+        state = State.IN_GAME;
     }
 
     private void displayNotification(String message) {
-        System.out.println(EscapeSequences.SET_TEXT_ITALIC + message + EscapeSequences.RESET_TEXT_ITALIC);
-        curPrompt();
+        if(message.contains("joined the game as black") || message.contains("joined the game as white")) {
+            if(currentGame != null && !currentGame.isGameOver() && !currentGame.isGameStarted()) {
+                currentGame.setGameStarted(true);
+            }
+        }
+        System.out.println("\n" + EscapeSequences.SET_TEXT_ITALIC + EscapeSequences.SET_TEXT_COLOR_BLUE 
+                            + message + EscapeSequences.RESET_TEXT_ITALIC + EscapeSequences.RESET_TEXT_COLOR);
+        System.out.print("\n\n" + EscapeSequences.SET_TEXT_FAINT + curPrompt() + EscapeSequences.RESET_TEXT_BOLD_FAINT);
     }
 
     private void displayError(String errorMessage) {
-        System.out.print(EscapeSequences.SET_TEXT_COLOR_RED + EscapeSequences.SET_TEXT_BOLD + errorMessage +
+        System.out.print("\n" + EscapeSequences.SET_TEXT_COLOR_RED + EscapeSequences.SET_TEXT_BOLD + errorMessage +
                          EscapeSequences.RESET_TEXT_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT);
-        curPrompt();
+        System.out.print("\n\n" + EscapeSequences.SET_TEXT_FAINT + curPrompt() + EscapeSequences.RESET_TEXT_BOLD_FAINT);
     }
 
     private void loadGame(ChessGame toLoad) {
         currentGame.setGame(toLoad);
-        if(state != State.IN_GAME) { redraw(); }
-        curPrompt();
+        redraw();
+        System.out.print("\n\n" + EscapeSequences.SET_TEXT_FAINT + curPrompt() + EscapeSequences.RESET_TEXT_BOLD_FAINT);
     }
 
     @Override
-    public void notify(ServerMessage message) {
-        switch (message.getServerMessageType()) {
-            case NOTIFICATION -> displayNotification(((NotificationMessage) message).getMessage());
-            case ERROR -> displayError(((ErrorMessage)message).getErrorMessage());
-            case LOAD_GAME -> loadGame(((LoadGameMessage)message).getGame());
+    public void notify(String message) {
+        ServerMessage serverMessage = new Gson().fromJson(message, ServerMessage.class);
+        switch (serverMessage.getServerMessageType()) {
+            case NOTIFICATION -> displayNotification(new Gson().fromJson(message, NotificationMessage.class).getMessage());
+            case ERROR -> displayError(new Gson().fromJson(message, ErrorMessage.class).getErrorMessage());
+            case LOAD_GAME -> loadGame(new Gson().fromJson(message, LoadGameMessage.class).getGame());
         }
     }
 }

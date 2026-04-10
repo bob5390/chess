@@ -35,6 +35,10 @@ public class EscapeSequences {
     public static final String SET_TEXT_COLOR_DARK_BLUE = SET_TEXT_COLOR + "25m";
     public static final String SET_TEXT_COLOR_MAGENTA = SET_TEXT_COLOR + "5m";
     public static final String SET_TEXT_COLOR_WHITE = SET_TEXT_COLOR + "15m";
+    public static final String SET_TEXT_COLOR_GOLD = SET_TEXT_COLOR + "220m";
+    public static final String SET_TEXT_COLOR_SILVER = SET_TEXT_COLOR + "250m";
+    public static final String SET_TEXT_COLOR_DARK_RED = SET_TEXT_COLOR + "124m";
+    public static final String SET_TEXT_COLOR_ROYAL_BLUE = SET_TEXT_COLOR + "63m";
     public static final String RESET_TEXT_COLOR = UNICODE_ESCAPE + "[39m";
 
     public static final String SET_BG_COLOR_BLACK = SET_BG_COLOR + "0m";
@@ -49,20 +53,22 @@ public class EscapeSequences {
     public static final String SET_BG_COLOR_DARK_BLUE = SET_BG_COLOR + "25m";
     public static final String SET_BG_COLOR_MAGENTA = SET_BG_COLOR + "5m";
     public static final String SET_BG_COLOR_WHITE = SET_BG_COLOR + "15m";
+    public static final String SET_BG_COLOR_LIGHT_BROWN = SET_BG_COLOR + "130m";
+    public static final String SET_BG_COLOR_TAN = SET_BG_COLOR + "222m";
     public static final String RESET_BG_COLOR = UNICODE_ESCAPE + "[49m";
 
-    public static final String WHITE_KING = " ♔ ";
-    public static final String WHITE_QUEEN = " ♕ ";
-    public static final String WHITE_BISHOP = " ♗ ";
-    public static final String WHITE_KNIGHT = " ♘ ";
-    public static final String WHITE_ROOK = " ♖ ";
-    public static final String WHITE_PAWN = " ♙ ";
-    public static final String BLACK_KING = " ♚ ";
-    public static final String BLACK_QUEEN = " ♛ ";
-    public static final String BLACK_BISHOP = " ♝ ";
-    public static final String BLACK_KNIGHT = " ♞ ";
-    public static final String BLACK_ROOK = " ♜ ";
-    public static final String BLACK_PAWN = " ♟ ";
+    public static final String WHITE_KING = SET_TEXT_COLOR_ROYAL_BLUE + " ♔ " + RESET_TEXT_COLOR;
+    public static final String WHITE_QUEEN = SET_TEXT_COLOR_ROYAL_BLUE + " ♕ " + RESET_TEXT_COLOR;
+    public static final String WHITE_BISHOP = SET_TEXT_COLOR_ROYAL_BLUE + " ♗ " + RESET_TEXT_COLOR;
+    public static final String WHITE_KNIGHT = SET_TEXT_COLOR_ROYAL_BLUE + " ♘ " + RESET_TEXT_COLOR;
+    public static final String WHITE_ROOK = SET_TEXT_COLOR_ROYAL_BLUE + " ♖ " + RESET_TEXT_COLOR;
+    public static final String WHITE_PAWN = SET_TEXT_COLOR_ROYAL_BLUE + " ♙ " + RESET_TEXT_COLOR;
+    public static final String BLACK_KING = SET_TEXT_COLOR_DARK_RED + " ♚ " + RESET_TEXT_COLOR;
+    public static final String BLACK_QUEEN = SET_TEXT_COLOR_DARK_RED + " ♛ " + RESET_TEXT_COLOR;
+    public static final String BLACK_BISHOP = SET_TEXT_COLOR_DARK_RED + " ♝ " + RESET_TEXT_COLOR;
+    public static final String BLACK_KNIGHT = SET_TEXT_COLOR_DARK_RED + " ♞ " + RESET_TEXT_COLOR;
+    public static final String BLACK_ROOK = SET_TEXT_COLOR_DARK_RED + " ♜ " + RESET_TEXT_COLOR;
+    public static final String BLACK_PAWN = SET_TEXT_COLOR_DARK_RED + " ♟ " + RESET_TEXT_COLOR;
     public static final String EMPTY = " \u2003 ";
 
     public static String moveCursorToLocation(int x, int y) { return UNICODE_ESCAPE + "[" + y + ";" + x + "H"; }

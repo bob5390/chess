@@ -91,9 +91,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         session.getRemote().sendString(gson.toJson(loadGameMessage));
 
         String message = "";
-        if(gameData.getBlackUsername().equals(username)) {
+        if(gameData.getBlackUsername() != null && gameData.getBlackUsername().equals(username)) {
             message = String.format("%s joined the game as black", username);
-        } else if(gameData.getWhiteUsername().equals(username)) {
+        } else if(gameData.getWhiteUsername() != null && gameData.getWhiteUsername().equals(username)) {
             message = String.format("%s joined the game as white", username);
         } else {
             message = String.format("%s joined the game as an observer", username);
