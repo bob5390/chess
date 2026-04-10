@@ -7,9 +7,9 @@ import com.google.gson.Gson;
 
 import chess.ChessMove;
 import jakarta.websocket.*;
-import websocket.commands.ConnectCommand;
 import websocket.commands.MoveCommand;
 import websocket.commands.UserGameCommand;
+import websocket.commands.UserGameCommand.CommandType;
 import websocket.messages.ServerMessage;
 
 public class WebSocketFacade extends Endpoint {
@@ -78,7 +78,7 @@ public class WebSocketFacade extends Endpoint {
                 }
             });
 
-            ConnectCommand connectCommand = new ConnectCommand(authToken, gameID, color);
+            UserGameCommand connectCommand = new UserGameCommand(CommandType.CONNECT, authToken, gameID);
             session.getBasicRemote().sendText(gson.toJson(connectCommand));
         } catch(Exception e) {
             throw new Exception("Error: " + e.getMessage());

@@ -11,12 +11,10 @@ import java.net.http.HttpResponse.BodyHandlers;
 
 import com.google.gson.Gson;
 
-import jakarta.websocket.*;
 import requests.*;
 import results.*;
 
 public class ServerFacade {
-    private Session session = null;
     private HttpClient httpClient;
     private String serverURL = null;
     private Gson gson;

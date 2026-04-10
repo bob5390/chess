@@ -18,7 +18,6 @@ import io.javalin.websocket.WsConnectHandler;
 import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
 import model.GameData;
-import websocket.commands.ConnectCommand;
 import websocket.commands.MoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
@@ -50,7 +49,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             String username = dbAccess.getAuth(authToken).getUsername();
 
             switch (command.getCommandType()) {
-                case CONNECT -> connect(session, username, gson.fromJson(ctx.message(), ConnectCommand.class));
+                case CONNECT -> connect(session, username, command);
                 case MAKE_MOVE -> makeMove(session, username, gson.fromJson(ctx.message(), MoveCommand.class));
                 case LEAVE -> leaveGame(session, username, command);
                 case RESIGN -> resign(session, username, command);
@@ -81,27 +80,25 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private void connect(Session session, String username, ConnectCommand command) throws Exception {
-        if(command.getColor() == null) {
-            throw new Exception("Error: Cannot connect to game, color not given.");
-        } else if(!command.getColor().equals("observer") && !command.getColor().equals("white") && !command.getColor().equals("black")) {
-            throw new Exception("Error: Cannot connect to game, color provided is not valid");
-        }
-
+    private void connect(Session session, String username, UserGameCommand command) throws Exception {
         GameData gameData = dbAccess.getGame(command.getGameID().toString());
         if(gameData == null) {
             throw new Exception("Error: Couldn't find game data. Is the game ID correct?");
         }
+        
         ChessGame game = gameData.getChessGame();
         LoadGameMessage loadGameMessage = new LoadGameMessage(game);
         session.getRemote().sendString(gson.toJson(loadGameMessage));
 
         String message = "";
-        if(command.getColor().equals("observer")) {
-            message = String.format("%s joined the game as an observer", username);
+        if(gameData.getBlackUsername().equals(username)) {
+            message = String.format("%s joined the game as black", username);
+        } else if(gameData.getWhiteUsername().equals(username)) {
+            message = String.format("%s joined the game as white", username);
         } else {
-            message = String.format("%s joined the game as %s", username, command.getColor());
+            message = String.format("%s joined the game as an observer", username);
         }
+
         NotificationMessage notification = new NotificationMessage(message);
         if(connections.containsKey(command.getGameID())) {
             connections.get(command.getGameID()).add(session);
