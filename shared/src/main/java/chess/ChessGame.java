@@ -143,9 +143,6 @@ public class ChessGame {
         if(gameOver) {
             throw new InvalidMoveException("Error: Game is over!");
         }
-        // if(!gameStarted) {
-        //     throw new InvalidMoveException("Error: Game has not started yet!");
-        // }
         ChessPosition startPosition = move.getStartPosition();
         ChessPiece targetPiece = board.getPiece(startPosition);
         if(targetPiece != null && targetPiece.getTeamColor() == currentTurn && validMoves(move.getStartPosition()).contains(move)) {

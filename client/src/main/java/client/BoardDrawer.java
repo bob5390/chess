@@ -12,30 +12,29 @@ public class BoardDrawer {
 
     public void setBoard(ChessBoard board) { this.board = board; }
 
+    private void draw(int row, int col, Collection<ChessPosition> toHightlight) {
+        ChessPosition curSquare = new ChessPosition(row, col);
+        if(toHightlight != null && toHightlight.contains(curSquare)) {
+            drawSquare(row, col, true);
+        } else {
+            drawSquare(row, col);
+        }
+    }
+
     public void drawBoard(String color, Collection<ChessPosition> toHightlight) {
         boardArray = convertBoard();
 
         if(color.equals("WHITE")) {
             for(int row = 9; row >= 0; row--) {
                 for(int col = 0; col < 10; col++) {
-                    ChessPosition curSquare = new ChessPosition(row, col);
-                    if(toHightlight != null && toHightlight.contains(curSquare)) {
-                        drawSquare(row, col, true);
-                    } else {
-                        drawSquare(row, col);
-                    }
+                    draw(row, col, toHightlight);
                 }
                 System.out.println(EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT);
             }
         } else {
             for(int row = 0; row < 10; row++) {
                 for(int col = 9; col >= 0; col--) {
-                    ChessPosition curSquare = new ChessPosition(row, col);
-                    if(toHightlight != null && toHightlight.contains(curSquare)) {
-                        drawSquare(row, col, true);
-                    } else {
-                        drawSquare(row, col);
-                    }
+                    draw(row, col, toHightlight);
                 }
                 System.out.println(EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR + EscapeSequences.RESET_TEXT_BOLD_FAINT);
             }

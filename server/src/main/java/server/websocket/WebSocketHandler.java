@@ -133,7 +133,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             gameData = dbAccess.updateGame(gameData); // updating might not be working right now
             LoadGameMessage loadGameMessage = new LoadGameMessage(gameData.getChessGame());
             notifySessions(command.getGameID(), null, gson.toJson(loadGameMessage));
-            String message = String.format("%s moved from %s to %s", username, command.getMove().getStartPosition().toString(), command.getMove().getEndPosition().toString());
+            String message = String.format("%s moved from %s to %s", 
+                                            username, 
+                                            command.getMove().getStartPosition().toString(), 
+                                            command.getMove().getEndPosition().toString());
             NotificationMessage notification = new NotificationMessage(message);
             notifySessions(command.getGameID(), session, gson.toJson(notification));
 
