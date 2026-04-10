@@ -2,6 +2,7 @@ package service;
 
 import org.mindrot.jbcrypt.BCrypt;
 
+import chess.ChessGame;
 import dataaccess.DataAccess;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ForbiddenResponse;
@@ -110,6 +111,12 @@ public class ChessService {
                 if(req.getTeamColor() != null && (req.getTeamColor().equals("WHITE") || req.getTeamColor().equals("BLACK"))) {
                     if(checkTeamColor(req.getTeamColor(), gameData)) {
                         gameData = dbAccess.joinGame(gameData, userData, req.getTeamColor());
+                        if(gameData.getBlackUsername() != null && gameData.getWhiteUsername() != null) {
+                            ChessGame game = gameData.getChessGame();
+                            game.setGameStarted(true);
+                            gameData.setGame(game);
+                            gameData = dbAccess.updateGame(gameData);
+                        }
                         return new JoinGameResult(gameData);
                     } else {
                         throw new ForbiddenResponse("cannot join, game already taken");

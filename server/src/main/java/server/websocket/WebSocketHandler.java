@@ -10,11 +10,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import com.google.gson.Gson;
 
 import chess.ChessGame;
-import chess.ChessPiece;
-import chess.InvalidMoveException;
 import dataaccess.DataAccess;
-import io.javalin.http.HttpResponseException;
-import io.javalin.http.UnauthorizedResponse;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsCloseHandler;
 import io.javalin.websocket.WsConnectContext;
@@ -61,7 +57,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
         } catch(Exception e) {
             e.printStackTrace();
-            ErrorMessage errorMessage = new ErrorMessage("Error: " + e.getMessage());
+            ErrorMessage errorMessage = new ErrorMessage((e.getMessage().toLowerCase().startsWith("error")? "":"Error: ") + e.getMessage());
             try {
                 session.getRemote().sendString(gson.toJson(errorMessage));
             } catch (IOException e1) {
@@ -125,11 +121,11 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         ChessGame game = gameData.getChessGame();
         if(game.getTeamTurn().toString().equals("WHITE")) {
             if(!gameData.getWhiteUsername().equals(username)) {
-                throw new Exception("Error: Cannot make move for other team");
+                throw new Exception("Error: It's not your turn!");
             }
         } else {
             if(!gameData.getBlackUsername().equals(username)) {
-                throw new Exception("Error: Cannot make move for other team");
+                throw new Exception("Error: It's not your turn!");
             }
         }
         if(!game.validMoves(command.getMove().getStartPosition()).contains(command.getMove())) {
@@ -137,10 +133,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         } else {
             game.makeMove(command.getMove());
             gameData.setGame(game);
-            dbAccess.updateGame(gameData);
+            gameData = dbAccess.updateGame(gameData); // updating might not be working right now
             LoadGameMessage loadGameMessage = new LoadGameMessage(gameData.getChessGame());
             notifySessions(command.getGameID(), null, gson.toJson(loadGameMessage));
-            String message = String.format("Move was made from %s to %s", command.getMove().getStartPosition().toString(), command.getMove().getEndPosition().toString());
+            String message = String.format("%s moved from %s to %s", username, command.getMove().getStartPosition().toString(), command.getMove().getEndPosition().toString());
             NotificationMessage notification = new NotificationMessage(message);
             notifySessions(command.getGameID(), session, gson.toJson(notification));
 
@@ -150,14 +146,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 message = String.format("%s is in checkmate", currentPlayer);
                 game.setGameOver(true);
                 gameData.setGame(game);
-                dbAccess.updateGame(gameData);
+                gameData = dbAccess.updateGame(gameData);
             } else if(game.isInCheck(currentTurn)) {
                 message = String.format("%s is in check", currentPlayer);
             } else if(game.isInStalemate(currentTurn)) {
                 message = String.format("%s is in stalemate", currentPlayer);
                 game.setGameOver(true);
                 gameData.setGame(game);
-                dbAccess.updateGame(gameData);
+                gameData = dbAccess.updateGame(gameData);
             }
             if(!message.contains("Move")) {
                 notification = new NotificationMessage(message);
@@ -176,7 +172,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         } else if(gameData.getWhiteUsername() != null && gameData.getWhiteUsername().equals(username)) {
             gameData.setWhiteUsername(null);
         } // otherwise it is an observer - no game data update to do
-        dbAccess.updateGame(gameData);
+        gameData = dbAccess.updateGame(gameData);
         String message = String.format("%s left the game.", username);
         NotificationMessage notification = new NotificationMessage(message);
         notifySessions(command.getGameID(), session, gson.toJson(notification));
@@ -192,7 +188,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         ChessGame game = gameData.getChessGame();
         game.setGameOver(true);
         gameData.setGame(game);
-        dbAccess.updateGame(gameData);
+        gameData = dbAccess.updateGame(gameData);
         String message = String.format("%s resigned.", username);
         NotificationMessage notification = new NotificationMessage(message);
         notifySessions(command.getGameID(), null, gson.toJson(notification));

@@ -40,7 +40,7 @@ public class WebSocketFacade extends Endpoint {
                 }
             });
         } catch(Exception e) {
-            throw new Exception("Error: " + e.getMessage());
+            throw new Exception((e.getMessage().toLowerCase().startsWith("error")? "":"Error: ") + e.getMessage());
         }
     }
 
@@ -90,5 +90,5 @@ public class WebSocketFacade extends Endpoint {
         session.getBasicRemote().sendText(gson.toJson(command));
     }
 
-    
+
 }
