@@ -398,9 +398,13 @@ public class ChessGame {
     public void setGameOver(boolean gameOver) {
         this.gameOver = gameOver;
     }
-    
+
     public void setGameStarted(boolean gameStarted) {
         this.gameStarted = gameStarted;
+    }
+    
+    public boolean isGameOver() {
+        return gameOver;
     }
 
     @Override

@@ -152,9 +152,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 gameData.setGame(game);
                 gameData = dbAccess.updateGame(gameData);
             }
-            if(!message.contains("Move")) {
+            if(!message.contains("moved")) {
                 notification = new NotificationMessage(message);
-                notifySessions(command.getGameID(), null, message);
+                notifySessions(command.getGameID(), null, gson.toJson(notification));
             }
         }
     }
@@ -182,7 +182,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         if(gameData == null) {
             throw new Exception("Error: Couldn't find game data. Is the game ID correct?");
         }
+        if(gameData.getBlackUsername() != null && !gameData.getBlackUsername().equals(username)
+        && gameData.getWhiteUsername() != null && !gameData.getWhiteUsername().equals(username)) {
+            throw new Exception("Error: Observers can't resign!");
+        }
         ChessGame game = gameData.getChessGame();
+        if(game.isGameOver()) {
+            throw new Exception("Error: You can't resign a game that is over!");
+        }
         game.setGameOver(true);
         gameData.setGame(game);
         gameData = dbAccess.updateGame(gameData);
